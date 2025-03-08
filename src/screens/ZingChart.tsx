@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState} from "react";
-import { View, StyleSheet,ScrollView,FlatList,TouchableHighlight,Text,Image, GestureResponderEvent} from "react-native";
+import { View, StyleSheet,ScrollView,FlatList,TouchableHighlight,Text,Image, GestureResponderEvent, TouchableOpacity} from "react-native";
 import { VictoryChart, VictoryLine, VictoryTheme, VictoryAxis,VictoryLabel,VictoryGroup,VictoryScatter,VictoryLegend,Line } from "victory-native";
 import { ScatterSymbolType } from "victory-core"; // Import ScatterSymbolType
 import { useSongStore,Song } from "../store/songStore"
@@ -7,6 +7,8 @@ import LinearGradient from 'react-native-linear-gradient'
 import { COLORS } from "../types/theme";
 import Icon from "react-native-vector-icons/MaterialIcons"; // hoặc Feather
 import { GestureHandlerEvent } from "react-native-reanimated/lib/typescript/hook";
+import AntDesign from 'react-native-vector-icons/AntDesign'
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 const series = [
   {
     name: "Canada",
@@ -69,7 +71,7 @@ export const ZingChart = () => {
     
       <VictoryChart
         padding={{
-          top: 100,
+          top: 30,
           left: 32,
           right: 32,
           bottom: 40,
@@ -135,10 +137,12 @@ export const ZingChart = () => {
             />
             <VictoryScatter
               size={5}
-              symbol={`${symbols[i]}`}
+              symbol='circle'
               style={{
                 data: {
-                  fill: `${colors[i]}`,
+                  fill: '#fff',
+                  stroke:`${colors[i]}`,
+                  strokeWidth:2,
                 },
               }}
               events={[
@@ -186,9 +190,9 @@ export const ZingChart = () => {
       {selectedPoint && (
         <View style={{flexDirection:'row',gap:4, position: "absolute", left: selectedPoint.x, top: selectedPoint.y-20,transform: [{ translateX: '-50%' },{translateY:'-100%'}],backgroundColor:'#fff', padding:4}}>
            <Image style={styles.img_small} source={{uri: song.image_cover}}/>
-            <View>
-              <Text>{song.name}</Text>
-              <Text>Lượt xem: 1</Text>
+            <View style={{flexDirection:'row', gap:4}}>
+              <AntDesign name="eyeo" size={20}/>
+              <Text>1</Text>
             </View>
           
         </View>
@@ -230,11 +234,23 @@ export const ZingChart = () => {
                 
               ))}
             </View>
+            <TouchableOpacity style={styles.flex_center}>
+           
+            <Text style={styles.text_info}>Xem thêm</Text>
+            <MaterialIcons name="arrow-drop-down" size={20} color={'#fff'}/>
+          
+            </TouchableOpacity>
             
           </LinearGradient>
-        
+         
         <View>
-          <Text style={styles.text_info}>heloo</Text>
+          <Text style={styles.text_info}>#zingchart tuần</Text>
+          <View>
+            <Image source={{uri:song.image_cover}} style={styles.img_large}/>
+            <View>
+              <Text style={{textTransform:'uppercase', color:'fff'}}>v-pop</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
     );
@@ -246,6 +262,12 @@ const styles = StyleSheet.create({
     backgroundColor:COLORS.primaryBlackRGBA,
     gap:20,
     
+  },
+  flex_center:{
+    flexDirection:'row',
+    alignItems:'center',
+   justifyContent:'center',
+    gap:2,
   },
   column: {
     flexDirection: 'column', // Các phần tử trong mỗi cột sắp xếp theo chiều dọc
@@ -271,6 +293,12 @@ const styles = StyleSheet.create({
     width:40,
     height:40,
     borderRadius:4,
+    resizeMode:'contain',
+  },
+  img_large:{
+    width:160,
+    height:160,
+    borderRadius:8,
     resizeMode:'contain',
   },
   button:{

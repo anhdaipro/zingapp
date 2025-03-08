@@ -16,14 +16,22 @@ interface SongStore {
     setTab: (tab_id:number) => void;
     tab_id: number;
     topsong:Song[];
+    play:boolean;
+    setPlay:() => void;
+    visible:boolean;
+    setVisible: (value:boolean)=>void
   }
 export const useSongStore = create<SongStore>((set) => ({
     songs: [],
+    play:false,
     topsong:[],
     tab_id:1,
     isLoading: false,
     error: null,
     song:{id:'',name:'',artist_name:'', image_cover:''},
+    setPlay: () => set((state) => ({ play: !state.play })), // Toggle play
+    visible: false,
+    setVisible: (value)=> set((state) =>({visible: value})),
     setTab: (tab_id) => {
       set({tab_id:tab_id})
     },

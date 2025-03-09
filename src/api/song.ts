@@ -10,7 +10,6 @@ export const fetchArrSongApi = async () =>{
         axios.get(listsongURL),
         axios.get(zingchartURL)
     ])
-    console.log(zingChartRes.data)
     return [songsRes.data, zingChartRes.data];
     
 }

@@ -19,7 +19,7 @@ const chunkSongs = (songs: Song[], chunkSize: number = 3) => {
       return chunks;
     }, [] as Song[][]);
   };
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get('window').width;//chiệu rộng màn hình
 const itemWidth = screenWidth/1.5;
 const itemWithView = screenWidth/3.5;
 const itemWithLarge = screenWidth/2.5

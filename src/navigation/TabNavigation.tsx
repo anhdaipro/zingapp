@@ -13,6 +13,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'; // Thay đổi tên Icon theo bộ bạn chọn
 import { FloatingPlayer } from '../components/FloatingPlayer';
+import { ModalContainer } from '../components/Modal';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 export const TabNavigator = () => {
@@ -114,7 +115,8 @@ export const TabNavigator = () => {
       }}
       />
     </Tab.Navigator>
-    <FloatingPlayer/>
+    {/* <FloatingPlayer/> */}
+    <ModalContainer/>
     </>
   );
 }

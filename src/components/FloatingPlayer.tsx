@@ -1,4 +1,4 @@
-import { View,Text,StyleSheet, Image } from "react-native"
+import { View,Text,StyleSheet, Image,TouchableOpacity } from "react-native"
 import { COLORS } from "../types/theme"
 import { useSongStore } from "../store/songStore"
 import React,{memo} from 'react'
@@ -6,7 +6,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Fontisto from 'react-native-vector-icons/Fontisto' 
 export const FloatingPlayer = React.memo(() =>{
-    const {song} = useSongStore()
+    const {song,play,setPlay} = useSongStore()
     return song.id && (
         <View style={styles.container}>
             <Image style={styles.img} source={{uri: song.image_cover}}/>
@@ -15,21 +15,33 @@ export const FloatingPlayer = React.memo(() =>{
                 <Text style={styles.text_primary}>{song.name}</Text>
             </View>
             <View style={styles.item_center}>
-                <AntDesign 
-                    name="heart" 
-                    size={24}
-                    color="#FFFFFF"
-                />
-                <FontAwesome 
-                    name="play"
-                    size={24}
-                    color="#FFFFFF"
-                />
-                <Fontisto 
-                    name="step-forward"
-                    size={16}
-                    color="#FFFFFF"
-                />
+                <TouchableOpacity>
+                    <AntDesign 
+                        name="heart" 
+                        size={24}
+                        color="#FFFFFF"
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={setPlay}>
+                    {play ? <FontAwesome
+                        name='pause'
+                        size={24}
+                        color='#fff'
+                    />: <FontAwesome 
+                        name="play"
+                        size={24}
+                        color="#fff"
+                    />}
+                </TouchableOpacity>
+                
+                <TouchableOpacity>
+                    <Fontisto 
+                        name="step-forward"
+                        size={16}
+                        color="#FFFFFF"
+                    />
+                </TouchableOpacity>
+                
             </View>
         </View>
     )

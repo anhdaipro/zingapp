@@ -51,13 +51,18 @@ const symbols:ScatterSymbolType[] = [
 
 export const ZingChart = () => {
   const colors:string[] = ["#ff0000", "#00ff00", "#0000ff"];
-  const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong} = useSongStore();
+  const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong,visible,setVisible} = useSongStore();
   const [selectedPoint, setSelectedPoint] = useState<{x:number, y: number} | null>(null)
   const [chartLayout, setChartLayout] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   console.log(selectedPoint)
   useEffect(()=>{
     fetchSongs();
   },[fetchSongs])
+  const setViewModal = (song:Song) =>{
+    setVisible(true)
+    setSongPlay(song)
+    console.log(123)
+  }
   return (
     <ScrollView contentContainerStyle={[styles.container,{paddingBottom: song.id ? 64 : 4}]}>
       <LinearGradient 
@@ -150,7 +155,7 @@ export const ZingChart = () => {
                   target: "data",
                   eventHandlers: {
                     onPressIn: (event: any, props) => {
-                      const { locationX, locationY } = event.nativeEvent; // ✅ Không còn lỗi
+                      const { locationX, locationY } = event.nativeEvent; // locationX: Vị trí theo trục X (ngang) của điểm chạm bên trong View chứa nó. locationY: Vị trí theo trục Y (dọc) của điểm chạm bên trong View chứa nó.
                       setSelectedPoint({ x: locationX, y: locationY });
                     },
                   },
@@ -226,8 +231,9 @@ export const ZingChart = () => {
                   <Text numberOfLines={2}  style={[styles.text_info]}>{song.name}</Text>
                   <Text  style={styles.text_info}>{song.artist_name}</Text>
                   </View>
-                  
-                  <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 
+                  <TouchableOpacity onPress={() => setViewModal(song)}>
+                    <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 
+                  </TouchableOpacity>
                 </View>
                 
                 </TouchableHighlight>

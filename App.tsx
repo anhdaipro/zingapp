@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SignupScreen from './src/screens/SignUpScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { TabNavigator } from './src/navigation/TabNavigation';
+import { CategoryScreen } from './src/screens/CategoryScreen';
 const App = () => {
   return (
     // Bọc ứng dụng trong NavigationContainer để sử dụng navigation
@@ -24,6 +25,9 @@ const App = () => {
             />
             <Stack.Screen name="Login" component={LoginScreen} 
             options={{title:'Đăng nhập'}}
+            />
+            <Stack.Screen name="Category" component={CategoryScreen} 
+            options={{title:'Chi tiết'}}
             />
           </Stack.Navigator>
         </SafeAreaView>

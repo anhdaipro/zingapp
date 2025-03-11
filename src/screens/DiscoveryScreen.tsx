@@ -8,6 +8,8 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import Icon from "react-native-vector-icons/MaterialIcons"; // hoặc Feather
 import { defaultTabs } from "../utils/data";
 import LinearGradient from 'react-native-linear-gradient'
+import { NavigativePros } from "../types/props";
+import { useGenreStore } from "../store/genreStore";
 
 const chunkSongs = (songs: Song[], chunkSize: number = 3) => {
     return songs.reduce((chunks, song, index) => {
@@ -23,11 +25,15 @@ const screenWidth = Dimensions.get('window').width;//chiệu rộng màn hình
 const itemWidth = screenWidth/1.5;
 const itemWithView = screenWidth/3.5;
 const itemWithLarge = screenWidth/2.5
-export const DiscoveryScreen = () =>{
+export const DiscoveryScreen:React.FC<NavigativePros>= ({navigation}) =>{
   const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong} = useSongStore();
+  const {genres}  = useGenreStore();
   useEffect(()=>{
       fetchSongs();
   },[fetchSongs])
+  useEffect(()=>{
+
+  },[])
   const chunkedSongs = useMemo(() => chunkSongs(songs),[songs]);
   const lSongLast = useMemo(() => songs.slice(6),[songs])
   if (isLoading) {
@@ -35,7 +41,12 @@ export const DiscoveryScreen = () =>{
   }
   const setFreshSong = () => {
   }
-  
+  const changeScreem = (item:Song) =>{
+    if(navigation){
+      navigation.navigate('Category',{name: item.name, title:'Top 100'});
+    }
+    
+  }
   return(
     <ScrollView contentContainerStyle={[styles.container,{paddingBottom: song.id ? 64 : 4}]}>
       
@@ -99,7 +110,7 @@ export const DiscoveryScreen = () =>{
         
         <View style={{gap:12}}>
           <View style={{ flexDirection: "row", gap:8,alignItems:'center'}}>
-            <Text style={styles.title}>Nghe gần đây</Text>
+            <Text style={styles.title}>Nghe gần đây 100</Text>
             <AntDesign
               name="right"
               size={16}
@@ -112,7 +123,10 @@ export const DiscoveryScreen = () =>{
             contentContainerStyle={[styles.scrollContainer]}
             horizontal
             renderItem={({ item }) => (
-              <View style={[styles.item_view,{width:itemWithView}]}>
+              <View style={[styles.item_view,{width:itemWithView}]} 
+                onStartShouldSetResponder={() => true}
+                onResponderRelease={() => changeScreem(item) }
+              >
                   <Image style={styles.img} source={{uri: item.image_cover}}/>
                   <View>
                   <Text style={styles.text_info}>{item.name}</Text>

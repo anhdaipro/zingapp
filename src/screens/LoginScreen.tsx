@@ -23,7 +23,7 @@ const LoginScreen: React.FC<LoginProps> = ({ navigation }) => {
   const handleHome = () => {
     if (navigation) {
       console.log(navigation)
-    navigation.navigate('Home',{screen: 'Library'});
+      navigation.navigate('Home',{screen: 'Library'});
     }
   }
   const handleNavigateToSignUp = (): void => {

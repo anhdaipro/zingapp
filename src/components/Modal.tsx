@@ -1,69 +1,82 @@
 import Modal from "react-native-modal";
 import { useSongStore } from "../store/songStore";
-import {View, Text, Button, StyleSheet, TouchableOpacity,Image, ScrollView,Dimensions,Pressable} from 'react-native'
+import {View, Text, StyleSheet, TouchableOpacity,Image, Animated} from 'react-native'
 import { COLORS } from "../types/theme";
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import { iconList } from "../utils/data";
 import AppIcon from "./AppIcon";
-import React,{useRef,useEffect} from 'react'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  runOnJS
-} from "react-native-reanimated";
-const { height } = Dimensions.get("window");
+import React,{useRef, useState,useCallback} from 'react'
 export const ModalContainer = () =>{
-    const {song,visible,setVisible} = useSongStore()
-    const translateY = useSharedValue(height);
+  const {song,visible,setVisible} = useSongStore()
+  const modalHeight = useRef(new Animated.Value(300)).current; // Modal bắt đầu từ 300px
+  return (
+    <Modal
+      isVisible={visible}
+      animationIn="slideInUp"   // Hiệu ứng mở từ dưới lên
+      animationOut="slideOutDown" // Hiệu ứng đóng xuống dưới
+      // animationInTiming={300}
+      // animationOutTiming={100}
+      backdropColor="black"
+      backdropOpacity={0.5}
+      swipeDirection="down"
+      onSwipeComplete={() => setVisible(false)}
+      onBackdropPress={() => setVisible(false)}
+      style={styles.modal} // Modal nằm dưới cùng màn hình
+    >
+      <View style={styles.modalContent}>
+        
+          <View style={[styles.flex_row,styles.song_info]}>
+            <View  style={[styles.songItem]}>
+              <Image style={styles.img_small} source={{uri: song.image_cover}}/>
+              <View style={styles.flex_1}>
+                  <Text numberOfLines={2}  style={styles.text_info}>{song.name}</Text>
+                  <View style={{flexDirection:'row', gap:4,alignItems:'center'}}>
+                      <AntDesign
+                      name='download'
+                      size={12}
+                      color={COLORS.primaryPurpage}
+                      />
+                      
+                      <Text style={styles.text_info}>{song.artist_name}</Text>
+                  </View>
+              </View>
+          </View>
+          <TouchableOpacity>
+              <FontAwesome6
+              name='share'
+              size={24}
+              color={'#fff'}
+              />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.items}>
+          {iconList.map(item=>
+            <View key={item.title} style={styles.item}>
+              <AppIcon 
+                icon={item.icon}
+                name={item.name}
+              />
+              <Text style={styles.text_info}>{item.title}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </Modal>
+    )
 
-  useEffect(() => {
-    if (visible) {
-      translateY.value = withSpring(0, { damping: 15, stiffness: 120 });
-    } else {
-      translateY.value = withTiming(height, { duration: 300 }, () => runOnJS(() => setVisible(false))());
-    }
-  }, [visible]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-    return (
-      <View style={styles.overlay}>
-      <Pressable style={styles.background} onPress={()=>setVisible(false)} />
-      <Animated.View style={[styles.modal, animatedStyle]}>
-        <View style={styles.dragHandle} />
-        <Text style={styles.text}>Hello, this is a Bottom Sheet!</Text>
-      </Animated.View>
-    </View>
-  )
 }
 const styles = StyleSheet.create({
     flex_1:{
         flex:1
     },
-    modalOverlay: {
-      flex: 1,
-      justifyContent: 'flex-end',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    items:{
+      gap:12
     },
-    flex:{
+    item:{
+      gap:12,
       flexDirection:'row',
         alignItems:'center',
-        gap:12,
-    },
-    modalContent: {
-      alignItems: "center",
-    },
-    modalContainer: {
-      backgroundColor: COLORS.secondaryDarkGreyHex,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-      paddingBottom: 40,
     },
     flex_row:{
         flexDirection:'row',
@@ -79,9 +92,12 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end", // Đưa modal xuống dưới cùng
         margin: 0, // Loại bỏ khoảng cách xung quanh
     },
-    
-    scrollView: {
-      flexGrow:1
+    modalContent: {
+      padding: 20,
+      backgroundColor: COLORS.primaryGreyHex,
+      borderRadius: 10,
+      gap:12,
+     
     },
      songItem: {
         alignItems: 'center',
@@ -105,30 +121,4 @@ const styles = StyleSheet.create({
         color:COLORS.primaryWhiteHex,
           
       },
-      dragHandle: {
-        width: 40,
-        height: 5,
-        backgroundColor: '#ccc',
-        borderRadius: 5,
-        alignSelf: 'center',
-        marginBottom: 10,
-      },
-      modalText: {
-        fontSize: 16,
-        marginBottom: 20,
-      },
-        overlay: {
-          flex: 1,
-          justifyContent: "flex-end",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-        },
-        background: {
-          flex: 1,
-        },
-        text: {
-          fontSize: 18,
-          textAlign: "center",
-        },
-    
-      
   });

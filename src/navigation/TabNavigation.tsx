@@ -14,9 +14,27 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'; // Thay đổi tên Icon theo bộ bạn chọn
 import { FloatingPlayer } from '../components/FloatingPlayer';
 import {ModalContainer}  from '../components/Modal';
+import { CategoryScreen } from '../screens/CategoryScreen';
+import Icon from 'react-native-vector-icons/Ionicons';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-export const TabNavigator = () => {
+const createStack = (MainScreen:React.FC<any>) => {
+  return function StackNavigator() {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: true }}>
+        <Stack.Screen name="Main" component={MainScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Category" component={CategoryScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    );
+  }
+ };
+ // Tạo từng Stack sử dụng hàm chung
+const Tab1Stack = createStack(LibraryScreen);
+const Tab2Stack = createStack(DiscoveryScreen);
+const Tab3Stack = createStack(ZingChart);
+const Tab4Stack = createStack(RadioScreen);
+const Tab5Stack = createStack(IndividualScreen);
+export const TabNavigator: React.FC<any>  = ({navigation,route}) => {
   return (
     <>
     <Tab.Navigator
@@ -24,6 +42,7 @@ export const TabNavigator = () => {
       headerStyle: { backgroundColor: COLORS.primaryBlackRGBA , elevation: 0,},
       tabBarActiveTintColor: COLORS.primaryPurpage, // Màu khi tab được chọn (active)
       tabBarInactiveTintColor: COLORS.textSecond, // Màu khi tab không được chọn (inactive)
+      headerShown: false ,
       tabBarLabelStyle: {
         fontSize: 12, // Kích thước chữ
       },
@@ -36,6 +55,11 @@ export const TabNavigator = () => {
       },
       headerTintColor: '#FFFFFF', // Chữ trắng
       headerTitleStyle: { fontWeight: 'bold', fontSize: 24 }, // Tùy c
+      headerLeft: ()=>(
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 15 }}>
+            <Icon name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+      ),
       headerRight: () => (
         <View style={styles.header_right}>
           <TouchableOpacity>
@@ -63,10 +87,10 @@ export const TabNavigator = () => {
     }}
     >
       <Tab.Screen name="Library" 
-      component={LibraryScreen} 
+      component={Tab1Stack} 
       options={{
-        
         title:'Thư viện',
+        headerShown: true ,
         tabBarPosition: 'bottom',
         tabBarLabelPosition: 'below-icon',
         tabBarIcon: ({ focused, color, size }) => (
@@ -75,17 +99,19 @@ export const TabNavigator = () => {
         
       }}
       />
-      <Tab.Screen name="Discovery" component={DiscoveryScreen} 
+      <Tab.Screen name="Discovery" component={Tab2Stack} 
+      
       options={{
         tabBarPosition: 'bottom',
         title: 'Khám phá',
+        
         tabBarLabelPosition: 'below-icon',
         tabBarIcon: ({ focused, color, size }) => (
           <MaterialIcons name='radio-button-checked' size={size} color={color} />
         ),
       }}
       />
-      <Tab.Screen name="Zingchart" component={ZingChart} 
+      <Tab.Screen name="Zingchart" component={Tab3Stack} 
       options={{
         
         tabBarPosition: 'bottom',
@@ -95,7 +121,7 @@ export const TabNavigator = () => {
         ),
       }}
       />
-      <Tab.Screen name="Radio" component={RadioScreen} 
+      <Tab.Screen name="Radio" component={Tab4Stack} 
       options={{
         tabBarPosition: 'bottom',
         tabBarLabelPosition: 'below-icon',
@@ -104,7 +130,7 @@ export const TabNavigator = () => {
         ),
       }}
       />
-      <Tab.Screen name="Individual" component={IndividualScreen} 
+      <Tab.Screen name="Individual" component={Tab5Stack} 
       options={{
         title: 'Cá nhân',
         tabBarPosition: 'bottom',
@@ -116,7 +142,7 @@ export const TabNavigator = () => {
       />
     </Tab.Navigator>
     <ModalContainer/>
-    {/* <FloatingPlayer/> */}
+    <FloatingPlayer/>
     
     </>
   );

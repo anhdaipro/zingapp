@@ -26,9 +26,7 @@ const App = () => {
             <Stack.Screen name="Login" component={LoginScreen} 
             options={{title:'Đăng nhập'}}
             />
-            <Stack.Screen name="Category" component={CategoryScreen} 
-            options={{title:'Chi tiết'}}
-            />
+           
           </Stack.Navigator>
         </SafeAreaView>
     </NavigationContainer>

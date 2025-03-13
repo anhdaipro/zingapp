@@ -6,3 +6,6 @@ export interface Genre {
     slug: string;
     songs: SongGenre[];
 }
+export interface GenreDetail extends Genre{
+    songs: Song[];
+}

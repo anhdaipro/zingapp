@@ -7,3 +7,7 @@ export const fetchListGenreApi = async () =>{
     const res = await axios.get(genresURL)
     return res.data;
 }
+export const fetchGenreApi = async (slug:string) =>{
+    const res = await axios.get(`${genreURL}/${slug}`)
+    return res.data;
+}

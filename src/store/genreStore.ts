@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { Genre } from '../types/genre';
-import { fetchListGenreApi } from '../api/category';
+import { Genre,GenreDetail } from '../types/genre';
+import { fetchGenreApi, fetchListGenreApi } from '../api/category';
 interface GenreStore{
     genres: Genre[];
-    genre: Genre | null;
+    genre: GenreDetail | null;
     isLoading: boolean;
     fetchGenres:() => void;
     fetchGenre:(slug:string) => void
@@ -23,7 +23,15 @@ export const useGenreStore = create<GenreStore>((set) => ({
             });
         }
     },
-    fetchGenre:(slug) => {
-
+    fetchGenre:async(slug) => {
+        set({ isLoading: true });
+        try {
+            const genre = await fetchGenreApi(slug);
+            set({ genre:genre, isLoading: false});
+        }catch (error) {
+            set({
+                isLoading: false,
+            });
+        }
     }
 }))

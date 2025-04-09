@@ -8,18 +8,11 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import Icon from "react-native-vector-icons/MaterialIcons"; // hoặc Feather
 import { defaultTabs } from "../utils/data";
 import LinearGradient from 'react-native-linear-gradient'
-import { NavigativePros,NavigativeProps } from "../types/props";
 import { useGenreStore } from "../store/genreStore";
 import { Genre } from "../types/genre";
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {HeaderTab} from "../components/Header";
 import { useNavigation,useRoute } from "@react-navigation/native";
-import { useShallow } from 'zustand/react/shallow'
-import { useSongs,useStreaming,useTopSongs } from "../hooks/queries/useSong";
-import { useGenre,useGenres } from "../hooks/queries/useCategory";
-import { useSongActive } from "../hooks/setup/activeSong";
-import SongItem from "../components/Song";
-import { CustomSlider } from "../components/CustomSlider";
+import { useControlStore } from "../store/controlStore";
 const chunkSongs = (songs: Song[], chunkSize: number = 3) => {
     return songs.reduce((chunks, song, index) => {
       const chunkIndex = Math.floor(index / chunkSize);
@@ -34,55 +27,39 @@ const screenWidth = Dimensions.get('window').width;//chiệu rộng màn hình
 const itemWidth = screenWidth/1.5;
 const itemWithView = screenWidth/3.5;
 const itemWithLarge = screenWidth/2.5
-export const DiscoveryScreen:React.FC= () =>{
-  const {setSongPlay,song,tab_id,setTab} = useSongStore();
+export const Discovery:React.FC= () =>{
   const navigation = useNavigation<any>();
-  const {fetchGenre}  = useGenreStore();
-  const fetchSongs = useSongStore((state) => state.fetchSongs);
-  const fetchGenres = useGenreStore((state) => state.fetchGenres);
-  const {data:songs, isLoading:isLoadingSong} = useSongs();
-  const {data:topsongs, isLoading:isLoadingTopSong} = useTopSongs();
-  const {data:genres, isLoading:isLoadingGenres} = useGenres();
-  if (isLoadingSong || isLoadingTopSong || isLoadingGenres) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-  const topsong = topsongs?.topsongs
-  
+  const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong} = useSongStore();
+  const {genres,fetchGenres, slug,setSlug}  = useGenreStore();
+  const {setComponet} = useControlStore()
+  useEffect(()=>{
+    if(isLoading){
+      fetchSongs();
+      fetchGenres()
+    }
+  },[])
  
-  // useEffect(()=>{
-  //   console.log("useEffect running...");
-  //   if(isLoading){
-  //     console.log(1)
-  //     fetchSongs();
-  //     fetchGenres()
-  //   }
-      
-  // },[])
-  // useLayoutEffect(() => {
-   
-  //     navigation.getParent().setOptions({
-  //       headerShown: true, // Ẩn header khi ở màn hình "Category"
-  //     });
-    
-  // }, [navigation, route.name]);
-  const chunkedSongs = chunkSongs(songs)
-  const lSongLast = songs.slice(6)
-  
-  const setFreshSong = async () => {
+  const chunkedSongs = useMemo(() => chunkSongs(songs),[songs]);
+  const lSongLast = useMemo(() => songs.slice(6),[songs])
+ 
+ 
+  const setFreshSong = () => {
   }
-  const changeScreem = async (item:Genre) =>{
-    navigation.navigate('Category' ,{slug: item.slug, name: item.name});
+  const changeScreem = (item:Genre) =>{
+    setComponet('Category')
+    setSlug(item.slug)
+    
   }
   return(
-    <>
+    !isLoading && <>
       <HeaderTab title='Khám phá' />
       
       <ScrollView contentContainerStyle={[styles.container,{paddingBottom: song.id ? 64 : 4}]}>
         
         <View style={styles.row_center}>
-          <Text style={styles.title}>Gợi ý cho bạn xin chào việt nam </Text>
+          <Text style={styles.title}>Gợi ý cho bạn</Text>
           <TouchableHighlight
-            onPress={() => setFreshSong()}
+            onPress={setFreshSong}
             activeOpacity={0.6}
             underlayColor = {COLORS.textSecond}
             
@@ -110,10 +87,26 @@ export const DiscoveryScreen:React.FC= () =>{
               renderItem={({ item }) => (
                 <View style={styles.column}>
                   {item.map((song) => (
-                    <SongItem
+                    <TouchableHighlight
+                      onPress={() => setSongPlay(song)}
                       key={song.id}
-                      song={song}
-                    />
+                      activeOpacity={0.6}
+                      underlayColor = {COLORS.textSecond}
+                      style={styles.button}
+                    >
+                      <View  style={[styles.songItem,{ width: itemWidth }]}>
+                      <Image style={styles.img_small} source={{uri: song.image_cover}}/>
+                      <View style={styles.flex_1}>
+                      <Text numberOfLines={2}  style={styles.text_info}>{song.name}</Text>
+                      <Text  style={styles.text_info}>{song.artist_name}</Text>
+                      </View>
+                      
+                      
+                      <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 
+                    </View>
+                    
+                    </TouchableHighlight>
+                    
                   ))}
                 </View>
               )}
@@ -273,7 +266,7 @@ export const DiscoveryScreen:React.FC= () =>{
               }}
             >
               <View style={styles.column}>
-                {topsong.map((song:Song) => (
+                {topsong.map((song) => (
                   <TouchableHighlight
                     onPress={() => setSongPlay(song)}
                     key={song.id}
@@ -301,7 +294,6 @@ export const DiscoveryScreen:React.FC= () =>{
           <View>
             <Text style={styles.text_info}>heloo</Text>
           </View>
-          <CustomSlider/>
         </View>
         
       </ScrollView>

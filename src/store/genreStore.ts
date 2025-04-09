@@ -7,11 +7,15 @@ interface GenreStore{
     isLoading: boolean;
     fetchGenres:() => void;
     fetchGenre:(slug:string) => void
+    slug:string;
+    setSlug:(slug:string) => void;
 }
 export const useGenreStore = create<GenreStore>((set) => ({
     genres:[],
     genre: null,
     isLoading:false,
+    slug:'',
+    setSlug:(slug) =>  set({ slug }),
     fetchGenres: async () => {
         set({ isLoading: true });
         try {

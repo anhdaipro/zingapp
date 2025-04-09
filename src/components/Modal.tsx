@@ -7,8 +7,12 @@ import AntDesign from 'react-native-vector-icons/AntDesign'
 import { iconList } from "../utils/data";
 import AppIcon from "./AppIcon";
 import React,{useRef, useState,useCallback} from 'react'
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import MusicPlayer from "./Player";
+import { ContentModal } from "./ContentModal";
 export const ModalContainer = () =>{
-  const {song,visible,setVisible} = useSongStore()
+  const {song,visible,setVisible,stylesModal,viewVisible} = useSongStore();
+  console.log(stylesModal)
   const modalHeight = useRef(new Animated.Value(300)).current; // Modal bắt đầu từ 300px
   return (
     <Modal
@@ -21,47 +25,16 @@ export const ModalContainer = () =>{
       backdropOpacity={0.5}
       swipeDirection="down"
       onSwipeComplete={() => setVisible(false)}
+      
       onBackdropPress={() => setVisible(false)}
-      style={styles.modal} // Modal nằm dưới cùng màn hình
+    
+      style={stylesModal} // Modal nằm dưới cùng màn hình
+      
     >
-      <View style={styles.modalContent}>
-        
-          <View style={[styles.flex_row,styles.song_info]}>
-            <View  style={[styles.songItem]}>
-              <Image style={styles.img_small} source={{uri: song.image_cover}}/>
-              <View style={styles.flex_1}>
-                  <Text numberOfLines={2}  style={styles.text_info}>{song.name}</Text>
-                  <View style={{flexDirection:'row', gap:4,alignItems:'center'}}>
-                      <AntDesign
-                      name='download'
-                      size={12}
-                      color={COLORS.primaryPurpage}
-                      />
-                      
-                      <Text style={styles.text_info}>{song.artist_name}</Text>
-                  </View>
-              </View>
-          </View>
-          <TouchableOpacity>
-              <FontAwesome6
-              name='share'
-              size={24}
-              color={'#fff'}
-              />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.items}>
-          {iconList.map(item=>
-            <View key={item.title} style={styles.item}>
-              <AppIcon 
-                icon={item.icon}
-                name={item.name}
-              />
-              <Text style={styles.text_info}>{item.title}</Text>
-            </View>
-          )}
-        </View>
-      </View>
+      <GestureHandlerRootView style={styles.flex_1}>
+      <ContentModal/>
+      </GestureHandlerRootView>
+     
     </Modal>
     )
 

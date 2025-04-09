@@ -6,10 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SignupScreen from './src/screens/SignUpScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import { TabNavigator } from './src/navigation/TabNavigation';
-import { CategoryScreen } from './src/screens/CategoryScreen';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 const App = () => {
   return (
-    // Bọc ứng dụng trong NavigationContainer để sử dụng navigation
+    <QueryClientProvider client={queryClient}>
     <NavigationContainer>
       {/* Bọc trong Provider để chia sẻ dữ liệu toàn cục (nếu có sử dụng context) */}
       
@@ -30,6 +32,7 @@ const App = () => {
           </Stack.Navigator>
         </SafeAreaView>
     </NavigationContainer>
+    </QueryClientProvider>
   );
 };
 

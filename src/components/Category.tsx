@@ -8,12 +8,16 @@ import { HeaderTab, Header } from "../components/Header";
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from "react-native-vector-icons/MaterialIcons"; // hoặc Feather
 import { useNavigation,useRoute } from "@react-navigation/native";
-import { useGenre } from "../hooks/queries/useCategory";
+import { useControlStore } from "../store/controlStore";
 const HeaderLeft  = () =>{
   const navigation = useNavigation<any>()
+  const {component, setComponet} = useControlStore()
+  const goback = () =>{
+    setComponet('Discovery')
+  }
   return (
     <>
-    <TouchableOpacity onPress={() => navigation.navigate('Discovery',{screen:'Main'})} style={{ marginRight: 10 }}>
+    <TouchableOpacity onPress={() => goback()} style={{ marginRight: 10 }}>
         <Icon name="arrow-back" size={20} color="#fff" />
     </TouchableOpacity>
     </>
@@ -29,17 +33,18 @@ const HeaderRight = () =>{
 const HeaderCenter = () =>{
   return <></>
 }
-export const CategoryScreen : React.FC = () => {
+export const Category : React.FC = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>()
-    const param = route.params.slug
+    const {genre,fetchGenre,slug,isLoading}  = useGenreStore();
+   
     const {fetchSongs,setSongPlay,song,tab_id,setTab,topsong} = useSongStore();
-    const {data:genre, isLoading} = useGenre(param)
-    // useEffect(()=>{
-    //   if(route?.params.slug){
-    //     fetchGenre(route?.params.slug)
-    //   }
-    // },[route?.params.slug])
+    useEffect(()=>{
+      if(slug){
+        fetchGenre(slug)
+      }
+    },[slug])
+   
     // useLayoutEffect(() => {
     //   if(route.name == 'Category'){
     //     navigation.getParent().setOptions({
@@ -52,13 +57,16 @@ export const CategoryScreen : React.FC = () => {
     //   }
       
     // }, [navigation, route.name]);
+
     if(!genre){
       return (
         <View style={{backgroundColor:COLORS.primaryBlackRGBA,flex:1}}>
-          <ActivityIndicator size="large" color='#fff' style={{paddingTop:20}} />
-      </View>
+            <ActivityIndicator size="large" color='#fff' style={{paddingTop:20}} />
+        </View>
+        
       )
     }
+   
     const image_genre = genre.songs[0].image_cover
     const songs = genre.songs
     return (
@@ -79,7 +87,7 @@ export const CategoryScreen : React.FC = () => {
               <View style={{ alignItems: 'center', gap: 16 }}>
                 <Image source={{ uri: image_genre }} style={styles.img_large} />
                 <View style={{ gap: 4 }}>
-                  <Text style={[styles.title, styles.text_center]}>Top 100 {route?.params.name} hay nhất</Text>
+                  <Text style={[styles.title, styles.text_center]}>Top 100 {genre.name} hay nhất</Text>
                   <Text style={[styles.text_info, styles.text_center]}>Zingmp3</Text>
                   <Text style={[styles.text_info, styles.text_center]}>Zingmp3</Text>
                 </View>

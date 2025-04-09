@@ -5,10 +5,22 @@ import React,{memo} from 'react'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Fontisto from 'react-native-vector-icons/Fontisto' 
+import { useSongActive } from "../hooks/setup/activeSong"
 export const FloatingPlayer = React.memo(() =>{
-    const {song,play,setPlay} = useSongStore()
+    const {song,play,setPlay,setVisible,setStyles,setViewVisible} = useSongStore()
+    const {setSongActive} = useSongActive(song)
+    const handlePlay = () => {
+        setPlay(!play)
+    }
+    const handleShowVisible = () => {
+        setVisible(true)
+        // setStyles({justifyContent:'flex-end',margin:0})
+        setViewVisible(2)
+    }   
     return song.id && (
-        <View style={styles.container}>
+        <>
+        <TouchableOpacity style={styles.container} onPress={() =>handleShowVisible()}>
+            
             <Image style={styles.img} source={{uri: song.image_cover}}/>
             <View style={styles.info}>
                 <Text style={styles.text_primary}>{song.artist_name}</Text>
@@ -22,7 +34,7 @@ export const FloatingPlayer = React.memo(() =>{
                         color="#FFFFFF"
                     />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={setPlay}>
+                <TouchableOpacity onPress={handlePlay}>
                     {play ? <FontAwesome
                         name='pause'
                         size={24}
@@ -43,7 +55,9 @@ export const FloatingPlayer = React.memo(() =>{
                 </TouchableOpacity>
                 
             </View>
-        </View>
+        </TouchableOpacity>
+        </>
+        
     )
 })
 const styles = StyleSheet.create({

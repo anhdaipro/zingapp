@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {Text,Alert,View, StyleSheet, TouchableOpacity} from 'react-native'
@@ -16,6 +16,10 @@ import { FloatingPlayer } from '../components/FloatingPlayer';
 import {ModalContainer}  from '../components/Modal';
 import { CategoryScreen } from '../screens/CategoryScreen';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSongStore } from '../store/songStore';
+import { setupPlayer } from '../hooks/setup/trackPlay';
+import useVideoPlayer from '../service/playbackService';
+import MusicPlayer from '../components/Player';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const createStack = (MainScreen:React.FC<any>) => {
@@ -35,6 +39,36 @@ const Tab3Stack = createStack(ZingChart);
 const Tab4Stack = createStack(RadioScreen);
 const Tab5Stack = createStack(IndividualScreen);
 export const TabNavigator: React.FC<any>  = ({navigation,route}) => {
+  const {song,play:playIng} = useSongStore()
+  const {play,pause} = useVideoPlayer()
+  // useEffect(() => {
+  //   const init = async () => {
+  //     await setupPlayer()
+  //     if(song.id){
+  //       await TrackPlayer.add([
+  //         {
+  //           id: song.id,
+  //           url: song.file,
+  //           title: song.name,
+  //           artist: song.artist_name,
+  //           artwork: song.image_cover,
+  //         },
+  //       ])
+  //     }
+  //   };
+  //   init();
+  //   return () => {
+  //     TrackPlayer.reset(); // Dọn dẹp khi component unmount
+  //   };
+  // }, [song.file]);
+  useEffect(() => {
+    if (playIng && song.file) {
+      play();
+    } else {
+      pause();
+    }
+  }, [playIng, play, pause,song.file]);
+  
   return (
     <>
     <Tab.Navigator
@@ -110,6 +144,12 @@ export const TabNavigator: React.FC<any>  = ({navigation,route}) => {
           <MaterialIcons name='radio-button-checked' size={size} color={color} />
         ),
       }}
+      listeners={({ navigation }) => ({
+        tabPress: (e) => {
+          e.preventDefault(); // Ngăn không cho Tab tự động chuyển
+          navigation.navigate('Discovery',{screen:'Main'}); // Chuyển đến màn hình Settings
+        }
+      })}
       />
       <Tab.Screen name="Zingchart" component={Tab3Stack} 
       options={{
@@ -143,7 +183,7 @@ export const TabNavigator: React.FC<any>  = ({navigation,route}) => {
     </Tab.Navigator>
     <ModalContainer/>
     <FloatingPlayer/>
-    
+    <MusicPlayer url={song.file}/>
     </>
   );
 }

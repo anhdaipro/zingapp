@@ -49,9 +49,9 @@ const symbols:ScatterSymbolType[] = [
 
 ];
 
-export const ZingChart = () => {
+export const ZingChart:React.FC = () => {
   const colors:string[] = ["#ff0000", "#00ff00", "#0000ff"];
-  const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong,visible,setVisible} = useSongStore();
+  const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong,visible,setVisible,setViewVisible} = useSongStore();
   const [selectedPoint, setSelectedPoint] = useState<{x:number, y: number} | null>(null)
   const [chartLayout, setChartLayout] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   console.log(selectedPoint)
@@ -61,7 +61,6 @@ export const ZingChart = () => {
   const setViewModal = (song:Song) =>{
     setVisible(true)
     setSongPlay(song)
-    console.log(123)
   }
   return (
     <ScrollView contentContainerStyle={[styles.container,{paddingBottom: song.id ? 64 : 4}]}>
@@ -231,7 +230,10 @@ export const ZingChart = () => {
                   <Text numberOfLines={2}  style={[styles.text_info]}>{song.name}</Text>
                   <Text  style={styles.text_info}>{song.artist_name}</Text>
                   </View>
-                  <TouchableOpacity onPress={() => setViewModal(song)}>
+                  <TouchableOpacity onPress={() => {
+                    setViewModal(song)
+                    setViewVisible(1)
+                    }}>
                     <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 
                   </TouchableOpacity>
                 </View>

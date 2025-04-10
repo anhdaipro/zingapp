@@ -54,7 +54,6 @@ export const ZingChart:React.FC = () => {
   const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong,visible,setVisible,setViewVisible} = useSongStore();
   const [selectedPoint, setSelectedPoint] = useState<{x:number, y: number} | null>(null)
   const [chartLayout, setChartLayout] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
-  console.log(selectedPoint)
   useEffect(()=>{
     fetchSongs();
   },[fetchSongs])

@@ -15,7 +15,7 @@ export const FloatingPlayer = React.memo(() =>{
     const handleShowVisible = () => {
         setVisible(true)
         // setStyles({justifyContent:'flex-end',margin:0})
-        setViewVisible(2)
+        
     }   
     return song.id && (
         <>

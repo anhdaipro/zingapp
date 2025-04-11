@@ -19,7 +19,7 @@ import { useSongs,useStreaming,useTopSongs } from "../hooks/queries/useSong";
 import { useGenre,useGenres } from "../hooks/queries/useCategory";
 import { useSongActive } from "../hooks/setup/activeSong";
 import SongItem from "../components/Song";
-import { CustomSlider } from "../components/CustomSlider";
+import CustomSlider  from "../components/CustomSlider";
 const chunkSongs = (songs: Song[], chunkSize: number = 3) => {
     return songs.reduce((chunks, song, index) => {
       const chunkIndex = Math.floor(index / chunkSize);

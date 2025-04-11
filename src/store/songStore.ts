@@ -58,10 +58,7 @@ export const useSongStore = create<SongStore>(
       setVideoRef: (ref) => set({ videoRef: ref }), // Cập nhật ref
       seek: (time) => {
         set({currentTime:time})
-        const videoRef = get().videoRef; // Sử dụng get() để lấy videoRef từ store
-        if (videoRef.current) {
-         videoRef.current.seek(time); // Thực hiện seek video khi thời gian thay đổi
-        }
+        
       },
       stylesModal:{
         justifyContent: "flex-end", // Đưa modal xuống dưới cùng

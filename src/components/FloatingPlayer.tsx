@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
         gap:12,
         paddingHorizontal:12,
         paddingVertical:4,
-        zIndex: 1,  // Make sure the box is on top of other elements  
+        zIndex: 10,  // Make sure the box is on top of other elements  
     },
     img:{
         width:52,

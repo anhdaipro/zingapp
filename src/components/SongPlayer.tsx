@@ -6,7 +6,7 @@ import { PlayerControls } from './PlayerControls';
 import useVideoPlayer from '../service/playbackService';
 import Slider  from '@react-native-community/slider';
 import { COLORS } from '../types/theme';
-import { CustomSlider } from './CustomSlider';
+import CustomSlider  from './CustomSlider';
 export const SongPlayer:React.FC = () =>{
     const rotation = useSharedValue(0);
     const [isValueChanged, setIsValueChanged] = useState(false); // Theo dõi xem giá trị có thay đổi không
@@ -48,6 +48,7 @@ export const SongPlayer:React.FC = () =>{
             seek(value)
         }
       };
+      const [sliderValue, setSliderValue] = useState(30);
     const minutes = Math.floor(song.duration / 60);
     const seconds = Math.round(song.duration % 60);
     const minutesCurrent = Math.floor(currentTime / 60);
@@ -63,7 +64,7 @@ export const SongPlayer:React.FC = () =>{
             </Animated.View>
             <View style={{width:'80%',gap:6}}>
                
-                <CustomSlider/>
+                <CustomSlider onValueChange={(value) => setSliderValue(value)}/>
                
                 <View style={styles.view_duration}>
                     <Text style={styles.text_info}>{(`${'0'+minutesCurrent}`).slice(-2)}:{(`${'0'+secondsCurrent}`).slice(-2)}</Text>
@@ -78,7 +79,6 @@ const styles = StyleSheet.create({
     container: {
         paddingTop: 20,
         alignItems:'center',
-        backgroundColor: '#FFF',
         borderRadius: 10,
         gap:12,
     },

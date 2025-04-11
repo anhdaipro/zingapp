@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSongStore } from '../store/songStore';
 import { COLORS } from '../types/theme';
+import { SongPlayer } from './SongPlayer';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MODAL_HEIGHT = SCREEN_HEIGHT * 0.6;
@@ -91,24 +92,17 @@ export const ModalContainer = () => {
   return (
       isVisible && (
         <>
-         
+         <TouchableWithoutFeedback onPress={closeModal}>
+          
+        
           <PanGestureHandler onGestureEvent={gestureHandler}>
             <Animated.View style={[styles.modal, modalStyle]}>
-              <TouchableWithoutFeedback onPress={closeModal}>
-                <View>
-                  <View style={styles.dragHandle} />
-                  <Text style={styles.modalTitle}>Custom Modal</Text>
-                  <Text style={styles.modalText}>
-                    Press outside or swipe down to close
-                  </Text>
-                  <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                    <Text>Close</Text>
-                  </TouchableOpacity>
-                </View>
+              <TouchableWithoutFeedback>
+                <SongPlayer/>
               </TouchableWithoutFeedback>
             </Animated.View>
           </PanGestureHandler>
-         
+          </TouchableWithoutFeedback>
         </>
       )
     

@@ -15,6 +15,8 @@ export interface Song {
   image_cover: string;
   file: string;
   duration:number;
+  lyrics: any[] | null; // Thay thế unknown bằng kiểu dữ liệu thực tế nếu có
+  sentences: any[] | null; // Thay thế unknown bằng kiểu dữ liệu thực tế nếu có
 }
 
 interface SongStore {
@@ -50,41 +52,22 @@ interface SongStore {
 export const useSongStore = create<SongStore>(
     (set,get) => ({
       songs: [],
-      currentTime:0,
-      isSliding: false, // Trạng thái kéo thanh trượt
-      setIsSliding: (isSliding) => set({ isSliding }), // Hàm cập nhật trạng thái kéo thanh trượt
-      setCurrentTime: (currentTime) => set({ currentTime }), // Hàm cập nhật thời gian hiện tại
-      videoRef: {current:null}, // Giá trị mặc định của ref
-      setVideoRef: (ref) => set({ videoRef: ref }), // Cập nhật ref
-      seek: (time) => {
-        set({currentTime:time})
-        
-      },
-      stylesModal:{
-        justifyContent: "flex-end", // Đưa modal xuống dưới cùng
-        margin: 0, // Loại bỏ khoảng cách xung quanh
-      },
-      setStyles: (stylesModal) => set({ stylesModal }),
-      component:'',
-      viewVisible: 1,
       play: false,
       topsong: [],
       tab_id: 1,
       isLoading: true,
       error: null,
       visible: false,
-      setComponet: (component) => set({ component }),
-      song: { id: '', name: '', artist_name: '', image_cover: '', file:'', duration:0},
+      song: { id: '', name: '', artist_name: '', image_cover: '', file:'', duration:0, lyrics: null,sentences: null },
       setPlay: (value) => {
         set({ play: value});
       },
       setVisible: (value) => set({ visible: value }),
-      setViewVisible: (viewVisible) => set({ viewVisible }),
       setTab: (tab_id) => set({ tab_id }),
       setSongPlay: (song) =>{
         set({song:song, play:false})
       },
-
+      
       fetchSongs: async () => {
         set({ isLoading: true, error: null });
         try {
@@ -94,5 +77,26 @@ export const useSongStore = create<SongStore>(
           set({ error: error instanceof Error ? error.message : 'Unknown error', isLoading: false });
         }
       },
+      component:'',
+      setComponet: (component) => set({ component }),
+      stylesModal:{
+        justifyContent: "flex-end", // Đưa modal xuống dưới cùng
+        margin: 0, // Loại bỏ khoảng cách xung quanh
+      },
+      setStyles: (stylesModal) => set({ stylesModal }),
+      
+      viewVisible: 1,
+      setViewVisible: (viewVisible) => set({ viewVisible }),
+      videoRef: {current:null}, // Giá trị mặc định của ref
+      setVideoRef: (ref) => set({ videoRef: ref }), // Cập nhật ref
+      currentTime:0,
+      setCurrentTime: (currentTime) => set({ currentTime }), // Hàm cập nhật thời gian hiện tại
+      seek: (time) => {
+        set({currentTime:time})
+      },
+      isSliding: false, // Trạng thái kéo thanh trượt
+      setIsSliding: (isSliding) => set({ isSliding }), // Hàm cập nhật trạng thái kéo thanh trượt
+
     }),
+    
 );

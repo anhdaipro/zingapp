@@ -1,23 +1,23 @@
-import React,{useRef} from 'react';
+import React,{useRef,memo} from 'react';
 import { View, Button, Text, StyleSheet } from 'react-native';
 import Video,{OnProgressData } from 'react-native-video';
 import useVideoPlayer from '../service/playbackService'; // Đường dẫn đến file playbackService.ts
 import { useSongStore } from '../store/songStore';
+import { useShallow } from 'zustand/shallow';
 
 const MusicPlayer: React.FC<{url:string}> = ({url}) => {
   const {
     onLoad,
   } = useVideoPlayer();
  
-  const {play:isPlaying,setPlay,setCurrentTime,videoRef,currentTime,isSliding} = useSongStore()
-  const handlePlay = () => {
-    setPlay(!isPlaying) // Đảo ngược trạng thái phát/tạm dừng
-  }
-  const handleEnd = () => {
-    setPlay(true) // Đặt trạng thái phát về false khi video kết thúc
-  }
- 
-
+  const {play:isPlaying,setPlay,setCurrentTime,videoRef,currentTime,isSliding} = useSongStore(useShallow((state) => ({
+    play: state.play,
+    setPlay: state.setPlay,
+    setCurrentTime: state.setCurrentTime,
+    videoRef: state.videoRef,
+    currentTime: state.currentTime,
+    isSliding:state.isSliding
+  })));
   return (
       <Video
         ref={videoRef}
@@ -54,4 +54,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default MusicPlayer;
+export default memo(MusicPlayer);

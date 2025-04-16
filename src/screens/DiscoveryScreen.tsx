@@ -17,7 +17,6 @@ import { useNavigation,useRoute } from "@react-navigation/native";
 import { useShallow } from 'zustand/react/shallow'
 import { useSongs,useStreaming,useTopSongs } from "../hooks/queries/useSong";
 import { useGenre,useGenres } from "../hooks/queries/useCategory";
-import { useSongActive } from "../hooks/setup/activeSong";
 import SongItem from "../components/Song";
 import CustomSlider  from "../components/CustomSlider";
 const chunkSongs = (songs: Song[], chunkSize: number = 3) => {
@@ -113,6 +112,7 @@ export const DiscoveryScreen:React.FC= () =>{
                     <SongItem
                       key={song.id}
                       song={song}
+                      itemWidth={itemWidth}
                     />
                   ))}
                 </View>
@@ -228,38 +228,43 @@ export const DiscoveryScreen:React.FC= () =>{
               
             </View>
             <View style={{flex:0}}>
-            <FlatList
-              data={chunkedSongs}
-              horizontal
-              contentContainerStyle={styles.scrollContainer}
-              renderItem={({ item }) => (
-                <View style={styles.column}>
-                  {item.map((song) => (
-                    <TouchableHighlight
-                      onPress={() => setSongPlay(song)}
-                      key={song.id}
-                      activeOpacity={0.6}
-                      underlayColor = {COLORS.textSecond}
-                      style={styles.button}
-                    >
-                      <View  style={[styles.songItem,{ width: itemWidth }]}>
-                      <Image style={styles.img_small} source={{uri: song.image_cover}}/>
-                      <View style={styles.flex_1}>
-                      <Text numberOfLines={2}  style={styles.text_info}>{song.name}</Text>
-                      <Text  style={styles.text_info}>{song.artist_name}</Text>
-                      </View>
+              <FlatList
+                data={chunkedSongs}
+                horizontal
+                contentContainerStyle={styles.scrollContainer}
+                renderItem={({ item }) => (
+                  <View style={styles.column}>
+                    {item.map((song) => (
+                      <SongItem
+                        key={song.id}
+                        song={song}
+                        itemWidth={itemWidth}
+                      />
+                      // <TouchableHighlight
+                      //   onPress={() => setSongPlay(song)}
+                      //   key={song.id}
+                      //   activeOpacity={0.6}
+                      //   underlayColor = {COLORS.textSecond}
+                      //   style={styles.button}
+                      // >
+                      //   <View  style={[styles.songItem,{ width: itemWidth }]}>
+                      //   <Image style={styles.img_small} source={{uri: song.image_cover}}/>
+                      //   <View style={styles.flex_1}>
+                      //   <Text numberOfLines={2}  style={styles.text_info}>{song.name}</Text>
+                      //   <Text  style={styles.text_info}>{song.artist_name}</Text>
+                      //   </View>
+                        
+                        
+                      //   <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 
+                      // </View>
                       
+                      // </TouchableHighlight>
                       
-                      <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 
-                    </View>
-                    
-                    </TouchableHighlight>
-                    
-                  ))}
-                </View>
-              )}
-              keyExtractor={(item, index) => index.toString()}
-            />
+                    ))}
+                  </View>
+                )}
+                keyExtractor={(item, index) => index.toString()}
+              />
             </View>
           </View>
           <View>
@@ -274,24 +279,30 @@ export const DiscoveryScreen:React.FC= () =>{
             >
               <View style={styles.column}>
                 {topsong.map((song:Song) => (
-                  <TouchableHighlight
-                    onPress={() => setSongPlay(song)}
+                  <SongItem
+                  itemWidth={'100%'}
                     key={song.id}
-                    activeOpacity={0.6}
-                    underlayColor = {COLORS.textSecond}
-                    style={[styles.button,{width:'100%'}]}
-                  >
-                    <View  style={[styles.songItem,]}>
-                    <Image style={styles.img_small} source={{uri: song.image_cover}}/>
-                    <View style={{flex:1}}>
-                    <Text numberOfLines={2}  style={[styles.text_info]}>{song.name}</Text>
-                    <Text  style={styles.text_info}>{song.artist_name}</Text>
-                    </View>
+                    song={song}
+                    // itemWidth={screenWidth}
+                  />
+                  // <TouchableHighlight
+                  //   onPress={() => setSongPlay(song)}
+                  //   key={song.id}
+                  //   activeOpacity={0.6}
+                  //   underlayColor = {COLORS.textSecond}
+                  //   style={[styles.button,{width:'100%'}]}
+                  // >
+                  //   <View  style={[styles.songItem,]}>
+                  //   <Image style={styles.img_small} source={{uri: song.image_cover}}/>
+                  //   <View style={{flex:1}}>
+                  //   <Text numberOfLines={2}  style={[styles.text_info]}>{song.name}</Text>
+                  //   <Text  style={styles.text_info}>{song.artist_name}</Text>
+                  //   </View>
                     
-                    <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 
-                  </View>
+                  //   <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 
+                  // </View>
                   
-                  </TouchableHighlight>
+                  // </TouchableHighlight>
                   
                 ))}
               </View>

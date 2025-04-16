@@ -5,18 +5,21 @@ import React,{memo} from 'react'
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Fontisto from 'react-native-vector-icons/Fontisto' 
+import { useLyrics } from "../hooks/queries/useSong"
 import { useSongActive } from "../hooks/setup/activeSong"
 export const FloatingPlayer = React.memo(() =>{
-    const {song,play,setPlay,setVisible,setStyles,setViewVisible} = useSongStore()
-    const {setSongActive} = useSongActive(song)
+    const {song,play,setPlay,setVisible,setStyles,setViewVisible} = useSongStore();
+    const {setLyrics} =  useSongActive(song)
     const handlePlay = () => {
         setPlay(!play)
     }
     const handleShowVisible = () => {
         setVisible(true)
         // setStyles({justifyContent:'flex-end',margin:0})
+        setLyrics();
         
     }   
+  
     return song.id && (
         <>
         <TouchableOpacity style={styles.container} onPress={() =>handleShowVisible()}>

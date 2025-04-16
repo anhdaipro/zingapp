@@ -3,8 +3,14 @@ import Ionicons from 'react-native-vector-icons/Ionicons'
 import { COLORS } from "../types/theme";
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'; // Thay đổi tên Icon theo bộ bạn chọn
 import { useSongStore } from '../store/songStore';
-export const PlayerControls = () => { 
-    const {play, setPlay} = useSongStore()      
+import { useShallow } from 'zustand/shallow';
+import React from 'react';
+export const PlayerControls = React.memo(() => { 
+     const{play, setPlay} = useSongStore(useShallow((state) => ({
+        play:state.play,
+        setPlay:state.setPlay
+      }))
+    );   
     const handlePlay = () => {
         setPlay(!play) // Đảo ngược trạng thái phát/tạm dừng    
     }   
@@ -49,7 +55,7 @@ export const PlayerControls = () => {
         </View>
     </View>
     )
-}
+})
 
 const styles = StyleSheet.create({
 	container: {

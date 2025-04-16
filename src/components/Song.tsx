@@ -5,8 +5,8 @@ import { COLORS } from '../types/theme';
 import Icon from "react-native-vector-icons/MaterialIcons"; // hoặc Feather
 import { Song } from '../types/song';
 const screenWidth = Dimensions.get('window').width;//chiệu rộng màn hình
-const itemWidth = screenWidth/1.5;
-export const SongItem: React.FC<{song:Song}> = ({ song }) => {
+// const itemWidth = screenWidth/1.5;
+export const SongItem: React.FC<{song:Song,itemWidth:any}> = ({ song,itemWidth }) => {
   const { setSongActive } = useSongActive(song);
   const handlePress = () => {
     setSongActive();
@@ -25,7 +25,7 @@ export const SongItem: React.FC<{song:Song}> = ({ song }) => {
         <View  style={[styles.songItem,{ width: itemWidth }]}>
         <Image style={styles.img_small} source={{uri: song.image_cover}}/>
         <View style={styles.flex_1}>
-        <Text numberOfLines={2}  style={styles.text_info}>{song.name}</Text>
+        <Text numberOfLines={1}  style={styles.text_info}>{song.name}</Text>
         <Text  style={styles.text_info}>{song.artist_name}</Text>
         </View>
         <Icon name="more-vert" size={24} color={COLORS.primaryWhiteHex} /> 

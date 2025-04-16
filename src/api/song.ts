@@ -1,5 +1,5 @@
 import axios from "axios"
-import { streamingURL } from "./url"
+import { lyricsongURL, streamingURL } from "./url"
 export const api='https://zingmp3server.vercel.app/api'
 export const originURL='https://zingmp3server.vercel.app'
 export const listsongURL=`${api}/v1/songs`
@@ -24,5 +24,9 @@ export const fetchTopSongApi = async () =>{
 }
 export const fetchStreamingApi = async (id: string) =>{
     const res = await axios.get(`${streamingURL}/${id}`)
+    return res.data
+}
+export const fetchLyricApi = async (id: string) =>{
+    const res = await axios.get(`${lyricsongURL}?id=${id}`)
     return res.data
 }

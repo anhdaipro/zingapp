@@ -13,14 +13,15 @@ import Animated, {
 import { useSongStore } from '../store/songStore';
 import { COLORS } from '../types/theme';
 import { SongPlayer } from './SongPlayer';
+import { RotatingCover } from './RotatingCover';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const MODAL_HEIGHT = SCREEN_HEIGHT * 0.6;
+const MODAL_HEIGHT = SCREEN_HEIGHT;
 
 export const ModalContainer = () => {
   const translateY = useSharedValue(MODAL_HEIGHT);
   const backdropOpacity = useSharedValue(0);
-  const {visible: isVisible,setVisible:setIsVisible} = useSongStore()
+  const {visible: isVisible,setVisible:setIsVisible} = useSongStore();
   useEffect(() => { 
     if (!isVisible) return;
     openModal();
@@ -88,21 +89,23 @@ export const ModalContainer = () => {
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
   }));
-  console.log(isVisible)
   return (
       isVisible && (
         <>
          <TouchableWithoutFeedback onPress={closeModal}>
-          
-        
+            <Animated.View style={[styles.backdrop, backdropStyle]} />
+          </TouchableWithoutFeedback>
           <PanGestureHandler onGestureEvent={gestureHandler}>
             <Animated.View style={[styles.modal, modalStyle]}>
               <TouchableWithoutFeedback>
+                <>
                 <SongPlayer/>
+                </>
+               
               </TouchableWithoutFeedback>
             </Animated.View>
           </PanGestureHandler>
-          </TouchableWithoutFeedback>
+          
         </>
       )
     
@@ -134,7 +137,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.secondaryGreyHex,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 20,
     paddingTop: 10,
     zIndex:10000,
   },

@@ -30,21 +30,23 @@ type Props = {
   outerPanRef: RefObject<PanGestureHandler>;
 };
 const CONTAINER_HEIGHT = 400;
-const SongLyrics:React.FC = () => {
+const SongLyrics:React.FC<Props> = ({outerPanRef}) => {
   const currentTime = useSongStore((state) => state.currentTime);
   const song = useSongStore((state) => state.song);
   const lyrics = song?.lyrics;
   const translateY = useSharedValue(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);   
   const containerRef = useAnimatedRef<View>();
-  const [indexActive,setIndexActive] = useState(0)
+  const [indexActive,setIndexActive] = useState(-1)
   // const isAtTop = useSharedValue(true); // true nếu đã cuộn lên đỉnh
   // return <View></View>
   if (!lyrics || lyrics.length == 0) return <View style={{marginVertical:20}}><Text style={[{textAlign:'center'},styles.text_title]}>Chưa có lời nhạc</Text></View>;
   const lyricHeight = 40; // Ví dụ, chiều cao mỗi lyric là 50 (tùy chỉnh theo thực tế)
   const totalHeight = lyrics.length * lyricHeight;
-const gestureHandler = useAnimatedGestureHandler<
-    PanGestureHandlerGestureEvent,PanContextType>({
+  const gestureHandler = useAnimatedGestureHandler<
+  PanGestureHandlerGestureEvent,
+  PanContextType>
+  ({
   onStart: (_, ctx) => {
     ctx.y = translateY.value;
     // ctx.shouldHandle = !isAtTop.value;
@@ -69,7 +71,7 @@ useEffect(()=>{
   
   timeoutRef.current = setTimeout(() => {
     const time = currentTime * 1000;
-    let indexChoice = 0;
+    let indexChoice = -1;
     for (let index = 0; index < lyrics.length; index++) {
       const min = lyrics[index].startTimeMs;
       const max = index < lyrics.length - 1
@@ -83,11 +85,13 @@ useEffect(()=>{
     }
     console.log(indexChoice)
     setIndexActive(indexChoice);
-    translateY.value = withSpring(-indexChoice*40,{
+    // translateY.value = Math.min(0,indexActive)
+    // const y = indexChoice <= 0 ? 0 : -indexChoice*40;
+    translateY.value = withSpring(Math.min(-indexChoice,0)*40,{
       damping: 20,// lực giảm chấn (giảm rung)
       stiffness: 90,       // độ cứng lò xo
       mass: 1,             // khối lượng ảo
-      overshootClamping: false, // true để không vượt quá target})
+      // overshootClamping: false, // true để không vượt quá target})
     })
     // translateY.value = -indexChoice * 40;
   },10)
@@ -138,9 +142,9 @@ const animatedStyle = useAnimatedStyle(() => ({
   // }, [currentTime, lyrics]);
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}
-    // activeOffsetY={[-10, 10]} // chỉ kích hoạt nếu kéo dọc đủ mạnh
-    // waitFor={outerPanRef} // ưu tiên outer nếu kéo ngang
-    // simultaneousHandlers={outerPanRef}
+    activeOffsetY={[-10, 10]} // chỉ kích hoạt nếu kéo dọc đủ mạnh
+    waitFor={outerPanRef} // ưu tiên outer nếu kéo ngang
+    simultaneousHandlers={outerPanRef}
     >
   <Animated.View style={[ {height: CONTAINER_HEIGHT, overflow: 'hidden' }]}>
     <Animated.View ref={containerRef} style={animatedStyle}>
@@ -197,7 +201,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   lyricLine: {
-    paddingVertical: 8,
+    
     minHeight: 40,
   },
   lyricText: {

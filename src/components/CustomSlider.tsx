@@ -1,5 +1,5 @@
 import React,{useEffect, useMemo, useState, useRef, useCallback,memo} from 'react';
-import { View, StyleSheet,Text } from 'react-native';
+import { View, StyleSheet,Text,Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -38,12 +38,13 @@ type CustomSliderProps = {
 type PanContextType = {
   startX: number;
 };
-
+const { width } = Dimensions.get('window');
+const widthA = width - 48
 const CustomSlider: React.FC<CustomSliderProps> = ({
   min = 0,
   max = 100,
   step = 1,
-  width = 300,
+  width = widthA,
   height = 40,
   thumbSize = 14,
   trackHeight = 3,
@@ -208,8 +209,9 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
           </PanGestureHandler>
         </Animated.View>
       </TapGestureHandler>
+     
     </View>
-    <View style={styles.view_duration}>
+    <View style={[styles.view_duration,{width:widthA}]}>
         <Text  style={[styles.text_info,]}>{(`${'0'+minutesCurrent}`).slice(-2)}:{(`${'0'+secondsCurrent}`).slice(-2)}</Text>
         <Text style={styles.text_info}>{(`${'0'+minutes}`).slice(-2)}:{(`${'0'+seconds}`).slice(-2)}</Text>
     </View>

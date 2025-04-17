@@ -5,10 +5,32 @@ import { COLORS } from '../types/theme';
 import { useSongStore } from '../store/songStore';
 import {useShallow} from 'zustand/shallow';
 import useRotationAnimation from '../hooks/setup/rotate';
-
-export const RotatingCover = memo(() => {
+import { useControlStore } from '../store/controlStore';
+interface Props{
+  page:number;
+}
+export const RotatingCover:React.FC<Props> = memo(({page}) => {
     const image_cover  = useSongStore((state) => state.song.image_cover);
-    const rotation = useRotationAnimation(80000);
+    const rotation = useSharedValue(0);
+    const pageAcitive = useControlStore(state=>state.page);
+    useEffect(() => {
+      if(page == pageAcitive){
+        
+      rotation.value = withRepeat(
+        withTiming(360, {
+          duration: 9000, // Xoay 360 độ trong 2 giây
+          easing: Easing.linear, // Tốc độ đều
+        }),
+        -1, // Lặp vô hạn
+        false // Không đảo chiều
+      );
+
+      return () => {
+        // Dọn dẹp khi component unmount
+        rotation.value = 0;
+      };
+    }
+    }, [pageAcitive]);
     const animatedStyle = useAnimatedStyle(() => {
         if (!global._WORKLET) {
           // Chạy trong JS thread (không phải UI)

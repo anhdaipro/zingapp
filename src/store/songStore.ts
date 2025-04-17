@@ -1,9 +1,5 @@
 import { create } from 'zustand';
 import { fetchArrSongApi } from '../api/song';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import TrackPlayer from 'react-native-track-player';
-import { useStreaming } from '../hooks/queries/useSong';
 import Video, { OnProgressData, OnLoadData,VideoRef } from 'react-native-video';
 import { MutableRefObject } from "react";
 import type { DirectEventHandler, Double, Float, Int32, WithDefault } from 'react-native/Libraries/Types/CodegenTypes';

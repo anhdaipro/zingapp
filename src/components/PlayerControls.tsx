@@ -60,10 +60,12 @@ export const PlayerControls = React.memo(() => {
 const styles = StyleSheet.create({
 	container: {
 		width: '100%',
+        paddingHorizontal:24,
+        marginTop:24
 	},
 	row: {
 		flexDirection: 'row',
-		justifyContent: 'space-evenly',
+		justifyContent: 'space-between',
 		alignItems: 'center',
 	},
 })

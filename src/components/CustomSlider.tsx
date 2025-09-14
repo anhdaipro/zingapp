@@ -3,22 +3,22 @@ import { View, StyleSheet,Text,Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedGestureHandler,
-  withSpring,
-  withTiming,
-  useDerivedValue,
   runOnJS,
-  Easing,
-  useAnimatedProps
+  withSpring,
+  useAnimatedProps,
+  runOnUI,
+  withTiming,
+  measure,
+  useAnimatedReaction,
+  useAnimatedRef,
+   useFrameCallback,
+  Easing
 } from 'react-native-reanimated';
-import { PanGestureHandler, TapGestureHandler, State, } from 'react-native-gesture-handler';
-import type {
-  PanGestureHandlerGestureEvent,
-  TapGestureHandlerGestureEvent,
-} from 'react-native-gesture-handler';
+import {Gesture,GestureDetector   } from 'react-native-gesture-handler';
+
 import { useSongStore } from '../store/songStore';
+
 import { COLORS } from '../types/theme';
-import { RotatingCover } from './RotatingCover';
 import { useShallow } from 'zustand/shallow';
 
 
@@ -40,6 +40,7 @@ type PanContextType = {
 };
 const { width } = Dimensions.get('window');
 const widthA = width - 48
+const AnimatedText = Animated.createAnimatedComponent(Text);
 const CustomSlider: React.FC<CustomSliderProps> = ({
   min = 0,
   max = 100,
@@ -49,42 +50,71 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
   thumbSize = 14,
   trackHeight = 3,
 }) => {
-  const{currentTime, setCurrentTime, song,videoRef,setIsSliding,isSliding} = useSongStore(useShallow((state) => ({
-    currentTime: state.currentTime,
-    setCurrentTime: state.setCurrentTime,
+  // return (<View></View>)
+  const{song,videoRef,setIsSliding,isSliding} = useSongStore(useShallow((state) => ({
     song: state.song,
     videoRef: state.videoRef,
     setIsSliding: state.setIsSliding,
     isSliding: state.isSliding,
   }))
   );
+  // const currentTime = async () => {
+  //   if(videoRef.current){
+  //     return await videoRef.current?.getCurrentPosition();
+  //   }
+  //   return 0;
+  // };
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const duration = song.duration
   const progress = useSharedValue(0);
   const [widthActive, setWidthActive] = useState(0);
   const [timeActive, setTimeActive] = useState(0);
-  useEffect(() => {
-    timeoutRef.current = setTimeout(() => {
-      
-      if (!isSliding) {
-        const px = (currentTime / duration) * width;
-        setWidthActive(px)
-        progress.value = withTiming(px, {
-          duration: 100,
+  const animatedRef = useAnimatedRef<Animated.View>();
+  const isAnimating = useSharedValue(false); // ⚡ Trạng thái animation
+  const startX = useSharedValue(0); // Replaces context
+  
+useEffect(() => {
+  if (!videoRef.current || isSliding) return;
+  videoRef.current.getCurrentPosition().then((positionStart) => {
+    const start = positionStart;
+    const end = song.duration;
+    const remaining = end - start;
+
+    const pxStart = (start / end) * width;
+    const pxEnd = width;
+
+    // ✅ Cập nhật React state bình thường
+    setWidthActive(pxStart);
+
+    // ✅ Animate bằng Reanimated
+    runOnUI(() => {
+      'worklet';
+       if (isAnimating.value) return; // tránh chạy lại nếu đang chạy
+      isAnimating.value = true;
+      progress.value = withTiming(
+        pxEnd,
+        {
+          duration: remaining * 1000,
           easing: Easing.linear,
-        });
+        },
+        (finished) => {
+          if (finished) {
+            isAnimating.value = false;
+          }
+        }
+      );
+    })();
+  });
+}, [videoRef.current, isSliding, width, song.duration]);
+useAnimatedReaction(
+  () => progress.value,
+  () => {
+      const measurement = measure(animatedRef);
+
+      if (measurement !== null) {
+        runOnJS(setWidthActive)(measurement.width);
       }
-      // setWidthActive(px);
-    }, 10); // debounce nhẹ 50ms
-    
-    // setWidthActive(px);
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-   
-  }, [currentTime,isSliding]);
+  });
   // useEffect(() => {
   //   const px = (currentTime / duration) *width;
   //   if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -102,7 +132,7 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
   const endGesture = useCallback(() => {
     const percent = widthActive / width; // Tính phần trăm
     const time = percent * duration;
-    setCurrentTime(time); // Cập nhật currentTime
+    // setCurrentTime(time); // Cập nhật currentTime
     if (videoRef.current) {
       videoRef.current.seek(time);
     }
@@ -122,26 +152,22 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
   // });
 
   // Pan gesture handler with proper typing
-  const panGestureHandler = useAnimatedGestureHandler<
-    PanGestureHandlerGestureEvent,PanContextType>({
-    onStart: (_, ctx) => {
-     
-      ctx.startX = progress.value;
-      runOnJS(setIsSliding)(true); // Gọi hàm setIsSliding(true) ở đây
-    },
-    onActive: (event, ctx) => {
-     
-      let newProgress = ctx.startX + event.translationX;
-      newProgress = newProgress + thumbSize / 2;
-      newProgress = Math.max(0, Math.min(newProgress, width));
-      progress.value = newProgress;
-      runOnJS(setWidthActive)(newProgress);
-      // runOnJS(setIsSliding)(true);
-    },
-    onEnd: (event) => {
-      
-      runOnJS(endGesture)();
-    },
+  const panGesture = Gesture.Pan()
+  .onStart(() => {
+    // ctx is no longer used, you might need to use refs or other methods
+    // if you need to store values between events
+    startX.value = progress.value; // Store initial position
+    runOnJS(setIsSliding)(true);
+  })
+  .onUpdate((event) => {
+    let newProgress = startX.value + event.translationX;
+    newProgress = newProgress + thumbSize / 2;
+    newProgress = Math.max(0, Math.min(newProgress, width));
+    progress.value = newProgress;
+    runOnJS(setWidthActive)(newProgress);
+  })
+  .onEnd(() => {
+    runOnJS(endGesture)();
   });
 
   const thumbStyle = useAnimatedStyle(() => ({
@@ -149,51 +175,58 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
   }));
 
   const progressStyle = useAnimatedStyle(() => ({
-    
     width: progress.value,
   }));
-  const onTap = ({ nativeEvent}: TapGestureHandlerGestureEvent) => {
-    if (nativeEvent.state === State.END) {
-      const tappedX = nativeEvent.x; // vị trí người dùng nhấn trên thanh
-      // Tính phần trăm
-      const percent = tappedX / (width); // thumbSize / 2 để căn giữa thumb
-      // Tính thời gian tương ứng
-      const newTime = percent * duration;
-      // progress.value = tappedX
-      // Cập nhật currentTime (hoặc gọi seek)
-      setIsSliding(false)
-      setCurrentTime(newTime); // hoặc call videoRef.current.seek(newTime)
-      if(videoRef.current){
-        videoRef.current.seek(newTime)
-      }
-      // Update progress (nếu không dùng derivedValue)
-      // progress.value = withTiming(tappedX, { duration: 200 });
-    }
-  };
   const minutes = Math.floor(song.duration / 60);
   const seconds = Math.round(song.duration % 60);
-  const minutesCurrent = useMemo(()=>{
+  
+  // const timeText = useMemo(() => {
+  //   const minutes =  Math.floor((widthActive/width)*duration / 60);
+  //   const seconds = Math.round((widthActive/width)*duration % 60);
+  //   return `${('0' + minutes).slice(-2)}:${('0' + seconds).slice(-2)}`;
+  // }, [widthActive]);
+  const tapGesture = Gesture.Tap()
+  .onEnd((event) => {
+    const tappedX = event.x; // Position where user tapped
+    const percent = tappedX / width;
+    const newTime = percent * duration;
+    runOnJS(setIsSliding)(false);
+    if (videoRef.current) {
+      runOnJS(videoRef.current.seek)(newTime);
+    }
+  });
+  const timeText = useMemo(() => {
+    const minutes = Math.floor(song.duration / 60);
+    const seconds = Math.round(song.duration % 60);
+    return `${('0' + minutes).slice(-2)}:${('0' + seconds).slice(-2)}`;
+  }, [song.duration]);
+   const minutesCurrent = useMemo(()=>{
     return Math.floor((widthActive/width)*duration / 60);
   },[widthActive])
   const secondsCurrent = useMemo(()=>{
     return Math.round((widthActive/width)*duration % 60);
-  },[widthActive])   
-  
+  },[widthActive]) 
+  // const animatedProps = useAnimatedProps(() => {
+  //   return {
+  //     text: progress.value,
+  //   } as any;
+  // });
   return (
     <>
     <View style={[styles.container, { width, height }]}>
-      <TapGestureHandler onHandlerStateChange={onTap}>
+      <GestureDetector  gesture={tapGesture}>
         <Animated.View style={styles.tapArea}>
         <View style={[styles.track, { width: width, height: trackHeight }]}/>
           
           <Animated.View 
+          ref={animatedRef}
             style={[
               styles.progress, 
               { height: trackHeight }, 
               progressStyle
             ]} 
           />
-          <PanGestureHandler onGestureEvent={panGestureHandler}>
+          <GestureDetector  gesture={panGesture}>
             <Animated.View 
               style={[
                 styles.thumb, 
@@ -206,12 +239,14 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
                 thumbStyle
               ]} 
             />
-          </PanGestureHandler>
+          </GestureDetector>
         </Animated.View>
-      </TapGestureHandler>
+      </GestureDetector >
      
     </View>
+
     <View style={[styles.view_duration,{width:widthA}]}>
+      
         <Text  style={[styles.text_info,]}>{(`${'0'+minutesCurrent}`).slice(-2)}:{(`${'0'+secondsCurrent}`).slice(-2)}</Text>
         <Text style={styles.text_info}>{(`${'0'+minutes}`).slice(-2)}:{(`${'0'+seconds}`).slice(-2)}</Text>
     </View>

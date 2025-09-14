@@ -9,10 +9,10 @@ export interface Song {
   name: string;
   artist_name: string;
   image_cover: string;
-  file: string;
+  file?: string;
   duration:number;
-  lyrics: any[] | null; // Thay thế unknown bằng kiểu dữ liệu thực tế nếu có
-  sentences: any[] | null; // Thay thế unknown bằng kiểu dữ liệu thực tế nếu có
+  lyrics?: any[] | null; // Thay thế unknown bằng kiểu dữ liệu thực tế nếu có
+  sentences?: any[] | null; // Thay thế unknown bằng kiểu dữ liệu thực tế nếu có
 }
 
 interface SongStore {

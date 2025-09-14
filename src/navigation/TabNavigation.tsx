@@ -17,9 +17,11 @@ import {ModalContainer}  from '../components/Modal';
 import { CategoryScreen } from '../screens/CategoryScreen';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSongStore } from '../store/songStore';
-import { setupPlayer } from '../hooks/setup/trackPlay';
 import useVideoPlayer from '../service/playbackService';
 import MusicPlayer from '../components/Player';
+import { FpsCounter } from '../components/FpsCount';
+import { useShallow } from 'zustand/react/shallow';
+import { set } from 'lodash';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const createStack = (MainScreen:React.FC<any>) => {
@@ -39,8 +41,12 @@ const Tab3Stack = createStack(ZingChart);
 const Tab4Stack = createStack(RadioScreen);
 const Tab5Stack = createStack(IndividualScreen);
 export const TabNavigator: React.FC<any>  = ({navigation,route}) => {
-  const {song,play:playIng} = useSongStore()
-  const {play,pause} = useVideoPlayer()
+  const {song,play:playIng,setPlay} = useSongStore(useShallow((state) => ({
+    song: state.song,
+    play: state.play,
+    setPlay: state.setPlay,
+  })));
+  // const {play,pause} = useVideoPlayer()
   // useEffect(() => {
   //   const init = async () => {
   //     await setupPlayer()
@@ -63,12 +69,12 @@ export const TabNavigator: React.FC<any>  = ({navigation,route}) => {
   // }, [song.file]);
   useEffect(() => {
     if (playIng && song.file) {
-      play();
+      setPlay(true);
     } else {
-      pause();
+      setPlay(false);
     }
-  }, [playIng, play, pause,song.file]);
-  
+  }, [playIng,song.file]);
+  console.log('TabNavigator render');
   return (
     <>
     <Tab.Navigator
@@ -183,7 +189,7 @@ export const TabNavigator: React.FC<any>  = ({navigation,route}) => {
     </Tab.Navigator>
     <ModalContainer/>
     <FloatingPlayer/>
-    <MusicPlayer url={song.file}/>
+    <MusicPlayer/>
     </>
   );
 }

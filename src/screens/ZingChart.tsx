@@ -9,6 +9,7 @@ import Icon from "react-native-vector-icons/MaterialIcons"; // hoặc Feather
 import { GestureHandlerEvent } from "react-native-reanimated/lib/typescript/hook";
 import AntDesign from 'react-native-vector-icons/AntDesign'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import { useShallow } from "zustand/shallow";
 const series = [
   {
     name: "Canada",
@@ -51,7 +52,14 @@ const symbols:ScatterSymbolType[] = [
 
 export const ZingChart:React.FC = () => {
   const colors:string[] = ["#ff0000", "#00ff00", "#0000ff"];
-  const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong,visible,setVisible,setViewVisible} = useSongStore();
+  const {fetchSongs,setSongPlay,song,topsong,setVisible,setViewVisible} = useSongStore(useShallow((state) => ({
+    fetchSongs: state.fetchSongs,
+    setSongPlay: state.setSongPlay,
+    song: state.song,
+    topsong: state.topsong,
+    setVisible: state.setVisible,
+    setViewVisible: state.setViewVisible
+  })));
   const [selectedPoint, setSelectedPoint] = useState<{x:number, y: number} | null>(null)
   const [chartLayout, setChartLayout] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   useEffect(()=>{

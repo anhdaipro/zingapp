@@ -19,9 +19,7 @@ const App = () => {
         <SafeAreaView style={{ flex: 1 }}>
           {/* Định nghĩa các màn hình với Stack Navigator */}
           <Stack.Navigator>
-          <Stack.Screen name="Home" component={TabNavigator} 
-            options={{headerShown:false}}
-            />
+          
             <Stack.Screen name="Signup" component={SignupScreen} 
             options={{title:'Đăng ký'}}
             />

@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchArrSongApi, fetchLyricApi, fetchSongsApi,fetchStreamingApi,fetchTopSongApi } from "../../api/song";
 export const useSongs = () =>{
+   
     return useQuery({
         queryKey:['songs'],
-        queryFn: fetchSongsApi,
-        staleTime:1000*60,
+        queryFn:async () => {
+            const res = await fetchSongsApi()
+            return res
+        },
+        
         
     })
 }

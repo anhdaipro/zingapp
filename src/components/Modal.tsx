@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, TouchableWithoutFeedback } from 'react-native';
-import { GestureHandlerRootView, PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedGestureHandler,
   withSpring,
   runOnJS,
   withTiming,
@@ -13,7 +12,7 @@ import Animated, {
 import { useSongStore } from '../store/songStore';
 import { COLORS } from '../types/theme';
 import { SongPlayer } from './SongPlayer';
-import { RotatingCover } from './RotatingCover';
+import { useShallow } from 'zustand/shallow';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MODAL_HEIGHT = SCREEN_HEIGHT;
@@ -21,7 +20,11 @@ const MODAL_HEIGHT = SCREEN_HEIGHT;
 export const ModalContainer = () => {
   const translateY = useSharedValue(MODAL_HEIGHT);
   const backdropOpacity = useSharedValue(0);
-  const {visible: isVisible,setVisible:setIsVisible} = useSongStore();
+  const {visible: isVisible,setVisible:setIsVisible} = useSongStore(useShallow((state) => ({
+    visible: state.visible,
+    setVisible: state.setVisible,
+  })));
+  const startY = useSharedValue(0); // Replaces context
   useEffect(() => { 
     if (!isVisible) return;
     openModal();
@@ -52,36 +55,31 @@ export const ModalContainer = () => {
     });
   };
 
-  const gestureHandler = useAnimatedGestureHandler<
-    PanGestureHandlerGestureEvent,
-    { startY: number }
-  >({
-    onStart: (_, ctx) => {
-      ctx.startY = translateY.value;
-    },
-    onActive: (event, ctx) => {
-      const newTranslateY = ctx.startY + event.translationY;
-      if (newTranslateY >= 0) {
-        translateY.value = newTranslateY;
-        backdropOpacity.value = 1 - (newTranslateY / MODAL_HEIGHT);
-      }
-    },
-    onEnd: (event) => {
-      if (event.translationY > MODAL_HEIGHT / 3) {
-        runOnJS(closeModal)();
-      } else {
-        translateY.value = withSpring(0, {
-          damping: 40,
-          stiffness: 400,
-        });
-        backdropOpacity.value = withTiming(1, {
-          duration: 300,
-          easing: Easing.ease,
-        });
-      }
-    },
+  const panGesture = Gesture.Pan()
+  .onStart(() => {
+    startY.value = translateY.value; // Store initial position
+  })
+  .onUpdate((event) => {
+    const newTranslateY = startY.value + event.translationY;
+    if (newTranslateY >= 0) {
+      translateY.value = newTranslateY;
+      backdropOpacity.value = 1 - (newTranslateY / MODAL_HEIGHT);
+    }
+  })
+  .onEnd((event) => {
+    if (event.translationY > MODAL_HEIGHT / 3) {
+      runOnJS(closeModal)();
+    } else {
+      translateY.value = withSpring(0, {
+        damping: 40,
+        stiffness: 400,
+      });
+      backdropOpacity.value = withTiming(1, {
+        duration: 300,
+        easing: Easing.ease,
+      });
+    }
   });
-
   const modalStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
   }));
@@ -95,7 +93,7 @@ export const ModalContainer = () => {
          <TouchableWithoutFeedback onPress={closeModal}>
             <Animated.View style={[styles.backdrop, backdropStyle]} />
           </TouchableWithoutFeedback>
-          <PanGestureHandler onGestureEvent={gestureHandler}>
+          <GestureDetector gesture={panGesture}>
             <Animated.View style={[styles.modal, modalStyle]}>
               <TouchableWithoutFeedback>
                 <>
@@ -104,7 +102,7 @@ export const ModalContainer = () => {
                
               </TouchableWithoutFeedback>
             </Animated.View>
-          </PanGestureHandler>
+          </GestureDetector>
           
         </>
       )

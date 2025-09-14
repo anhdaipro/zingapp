@@ -7,9 +7,10 @@ const useVideoPlayer = () => {
   const [duration, setDuration] = useState(0); // Tổng thời lượng video/audio
   const [currentTime, setCurrentTime] = useState(0); // Thời gian hiện tại
   const [isPlaying, setIsPlaying] = useState(false);
-  const {setPlay} = useSongStore()
+ 
   // Bắt đầu phát nhạc
   const play = () => {
+    
     setIsPlaying(true);
   };
 

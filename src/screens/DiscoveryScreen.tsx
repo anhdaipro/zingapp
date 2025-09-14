@@ -34,11 +34,14 @@ const itemWidth = screenWidth/1.5;
 const itemWithView = screenWidth/3.5;
 const itemWithLarge = screenWidth/2.5
 export const DiscoveryScreen:React.FC= () =>{
-  const {setSongPlay,song,tab_id,setTab} = useSongStore();
+  const {song,tab_id,setTab} = useSongStore(useShallow((state) => ({
+    song: state.song,
+    tab_id: state.tab_id,
+    setTab: state.setTab,
+    })));
   const navigation = useNavigation<any>();
-  const {fetchGenre}  = useGenreStore();
-  const fetchSongs = useSongStore((state) => state.fetchSongs);
-  const fetchGenres = useGenreStore((state) => state.fetchGenres);
+  
+ 
   const {data:songs, isLoading:isLoadingSong} = useSongs();
   const {data:topsongs, isLoading:isLoadingTopSong} = useTopSongs();
   const {data:genres, isLoading:isLoadingGenres} = useGenres();
@@ -309,10 +312,6 @@ export const DiscoveryScreen:React.FC= () =>{
               
             </LinearGradient>
           </View>
-          <View>
-            <Text style={styles.text_info}>heloo</Text>
-          </View>
-          <CustomSlider/>
         </View>
         
       </ScrollView>

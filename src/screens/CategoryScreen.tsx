@@ -9,6 +9,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from "react-native-vector-icons/MaterialIcons"; // hoặc Feather
 import { useNavigation,useRoute } from "@react-navigation/native";
 import { useGenre } from "../hooks/queries/useCategory";
+import { useShallow } from "zustand/react/shallow";
 const HeaderLeft  = () =>{
   const navigation = useNavigation<any>()
   return (
@@ -33,7 +34,10 @@ export const CategoryScreen : React.FC = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>()
     const param = route.params.slug
-    const {fetchSongs,setSongPlay,song,tab_id,setTab,topsong} = useSongStore();
+    const {setSongPlay,song} = useSongStore(useShallow((state) => ({
+      setSongPlay: state.setSongPlay,
+      song: state.song,
+    })));
     const {data:genre, isLoading} = useGenre(param)
     // useEffect(()=>{
     //   if(route?.params.slug){

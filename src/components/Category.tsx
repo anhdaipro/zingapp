@@ -9,6 +9,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from "react-native-vector-icons/MaterialIcons"; // hoặc Feather
 import { useNavigation,useRoute } from "@react-navigation/native";
 import { useControlStore } from "../store/controlStore";
+import { useShallow } from "zustand/shallow";
 const HeaderLeft  = () =>{
   const navigation = useNavigation<any>()
   const {component, setComponet} = useControlStore()
@@ -36,9 +37,12 @@ const HeaderCenter = () =>{
 export const Category : React.FC = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>()
-    const {genre,fetchGenre,slug,isLoading}  = useGenreStore();
+    const {genre,fetchGenre,slug}  = useGenreStore();
    
-    const {fetchSongs,setSongPlay,song,tab_id,setTab,topsong} = useSongStore();
+    const {setSongPlay,song} = useSongStore(useShallow((state) => ({
+      setSongPlay: state.setSongPlay,
+      song: state.song,
+    })));
     useEffect(()=>{
       if(slug){
         fetchGenre(slug)

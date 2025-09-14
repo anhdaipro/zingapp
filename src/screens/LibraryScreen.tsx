@@ -1,9 +1,9 @@
 import { View,ScrollView,Text,StyleSheet } from "react-native"
 import { COLORS } from "../types/theme"
 import { useSongStore } from "../store/songStore"
-
+import React,{useEffect} from "react"
 export const LibraryScreen:React.FC = () =>{
-  const {song,component} = useSongStore()
+  
     return (
         
             <View style={styles.container}>

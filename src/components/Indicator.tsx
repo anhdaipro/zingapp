@@ -1,12 +1,7 @@
 import {View,StyleSheet, Image,Text,Dimensions,LayoutChangeEvent } from 'react-native';
 import React, { useEffect,useState,memo,useRef,useMemo } from 'react';
 import Animated, { useSharedValue, useAnimatedStyle, 
-    withRepeat, withTiming,useAnimatedProps , 
-    Easing,useDerivedValue,
-    Extrapolate,
-    withSpring,
-    runOnJS,
-    useAnimatedGestureHandler,
+    Extrapolation,
     interpolateColor,
     runOnUI,
     SharedValue,
@@ -18,22 +13,19 @@ interface Props{
     indexActive: number
 }
 export const Indicator:React.FC<Props> = ({ index, translateX, width,indexActive }) => {
-    console.log(translateX)
     const animatedStyle = useAnimatedStyle(() => {
         const inputRange = [
           (index - 1) * width,
           index * width,
           (index + 1) * width,
           ];
-          console.log(translateX)
           // Interpolate để tính toán chiều rộng của indicator
           const widthAnim = interpolate(
             -translateX.value, // Note the negative sign
             inputRange,
             [12, 20, 12],
-            Extrapolate.CLAMP
+            Extrapolation.CLAMP
           );
-          console.log(inputRange)
           // Thay đổi màu nền của indicator khi nó gần vị trí active
           // const bgColor = index==indexActive ? '#FFD700' : '#fff'; 
           const bgColor = interpolateColor(

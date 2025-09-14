@@ -1,55 +1,42 @@
-import {View,StyleSheet, Image,Text } from 'react-native';
-import React, { useEffect,useState, memo } from 'react';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming,useAnimatedProps , Easing,useDerivedValue } from "react-native-reanimated";
+import {View,StyleSheet, Image,Text,Animated,Easing  } from 'react-native';
+import React, { useEffect, memo,useRef } from 'react';
+import  {cancelAnimation, useSharedValue, useAnimatedStyle,interpolate,
+   withRepeat, withTiming,runOnUI } from "react-native-reanimated";
 import { COLORS } from '../types/theme';
 import { useSongStore } from '../store/songStore';
-import {useShallow} from 'zustand/shallow';
-import useRotationAnimation from '../hooks/setup/rotate';
-import { useControlStore } from '../store/controlStore';
 interface Props{
   page:number;
 }
-export const RotatingCover:React.FC<Props> = memo(({page}) => {
-    const image_cover  = useSongStore((state) => state.song.image_cover);
-    const rotation = useSharedValue(0);
-    const pageAcitive = useControlStore(state=>state.page);
-    useEffect(() => {
-      if(page == pageAcitive){
-        
-      rotation.value = withRepeat(
-        withTiming(360, {
-          duration: 9000, // Xoay 360 độ trong 2 giây
-          easing: Easing.linear, // Tốc độ đều
-        }),
-        -1, // Lặp vô hạn
-        false // Không đảo chiều
-      );
+export const RotatingCover:React.FC = memo(() => {
+  const image_cover = useSongStore((state) => state.song.image_cover);
+  const isPlaying = useSongStore(state => state.play);
+  const progress = useSharedValue(0); // giá trị từ 0 → 1
+  const spinValue = useRef<Animated.Value>(new Animated.Value(0)).current;
 
-      return () => {
-        // Dọn dẹp khi component unmount
-        rotation.value = 0;
-      };
-    }
-    }, [pageAcitive]);
-    const animatedStyle = useAnimatedStyle(() => {
-        if (!global._WORKLET) {
-          // Chạy trong JS thread (không phải UI)
-          console.log("JS thread only - không nên xử lý UI ở đây");
-          return {};
-        }
-      
-        // Đoạn code dưới đây sẽ chỉ chạy khi ở trong UI thread (worklet)
-        return {
-          transform: [
-            { rotate: `${rotation.value}deg` },
-          ],
-        };
-      });
-    return (
-        <Animated.View style={[styles.circle, animatedStyle]}>
-            <Image source={{ uri: image_cover }} style={styles.img} resizeMode="cover" />
-        </Animated.View>
-    );
+ useEffect(() => {
+  spinValue.setValue(0); // reset ban đầu nếu cần
+  const loopAnim = Animated.loop(
+    Animated.timing(spinValue, {
+      toValue: 1,
+      duration: 7000,
+      useNativeDriver: true,
+      easing: Easing.linear,
+    })
+  );
+  loopAnim.start();
+
+  return () => loopAnim.stop(); // cleanup khi unmount
+}, []);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+  return (
+   
+      <Animated.Image source={{ uri: image_cover }} resizeMode='cover' style={[styles.img,{ transform: [{ rotate: spin }] }]} />
+   
+  );
 });
 const styles = StyleSheet.create({
     container: {
@@ -71,13 +58,14 @@ const styles = StyleSheet.create({
     circle: {
     width: 200,
     height: 200,
-    borderRadius: '50%',
+    borderRadius: 100,
     backgroundColor: "blue",
     overflow: "hidden",
     },
     img:{
-        width:'100%',
-        height:'100%',
+        width:200,
+        height:200,
+        borderRadius: 100,
        
     },
     slider: {

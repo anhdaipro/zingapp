@@ -1,7 +1,6 @@
 import {Alert, View,Text,StyleSheet,ActivityIndicator,FlatList,Dimensions, Image, TouchableHighlight,ScrollView} from "react-native"
 import React,{useEffect,useState,useMemo,useRef,useLayoutEffect} from 'react'
 import { useSongStore,Song } from "../store/songStore"
-import { fetchArrSongApi } from "../api/song"
 import { COLORS } from "../types/theme";
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import AntDesign from 'react-native-vector-icons/AntDesign'
@@ -13,6 +12,7 @@ import { Genre } from "../types/genre";
 import {HeaderTab} from "../components/Header";
 import { useNavigation,useRoute } from "@react-navigation/native";
 import { useControlStore } from "../store/controlStore";
+import { useShallow } from "zustand/react/shallow";
 const chunkSongs = (songs: Song[], chunkSize: number = 3) => {
     return songs.reduce((chunks, song, index) => {
       const chunkIndex = Math.floor(index / chunkSize);
@@ -29,7 +29,16 @@ const itemWithView = screenWidth/3.5;
 const itemWithLarge = screenWidth/2.5
 export const Discovery:React.FC= () =>{
   const navigation = useNavigation<any>();
-  const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong} = useSongStore();
+  const {songs,fetchSongs,isLoading,setSongPlay,song,tab_id,setTab,topsong} = useSongStore(useShallow((state) => ({
+    songs: state.songs,
+    fetchSongs: state.fetchSongs,
+    isLoading: state.isLoading,
+    setSongPlay: state.setSongPlay,
+    song: state.song,
+    tab_id: state.tab_id,
+    setTab: state.setTab,
+    topsong: state.topsong
+  })));
   const {genres,fetchGenres, slug,setSlug}  = useGenreStore();
   const {setComponet} = useControlStore()
   useEffect(()=>{

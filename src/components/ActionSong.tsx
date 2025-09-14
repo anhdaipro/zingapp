@@ -6,8 +6,8 @@ import { iconList } from "../utils/data";
 import AppIcon from "./AppIcon";
 import { useSongStore } from "../store/songStore";
 export const ActionSong = () => {
-    const {song,visible,setVisible,stylesModal,viewVisible} = useSongStore()
-  return (
+    const song = useSongStore(state=>state.song)
+    return (
     <View style={styles.modalContent}>
     <View style={[styles.flex_row,styles.song_info]}>
         <View  style={[styles.songItem]}>

@@ -1,12 +1,9 @@
 import {View,StyleSheet, Image,Text,Dimensions,LayoutChangeEvent } from 'react-native';
 import React, { useEffect,useState,memo,useRef,useMemo } from 'react';
 import Animated, { useSharedValue, useAnimatedStyle, 
-    withRepeat, withTiming,useAnimatedProps , 
-    Easing,useDerivedValue,
-    Extrapolate,
+    Extrapolation,
     withSpring,
     runOnJS,
-    useAnimatedGestureHandler,
     runOnUI,
     interpolate, } from "react-native-reanimated";
 import { useSongStore } from '../store/songStore';
@@ -14,12 +11,14 @@ import { PlayerControls } from './PlayerControls';
 import { COLORS, FONTSIZE } from '../types/theme';
 import CustomSlider  from './CustomSlider';
 import { RotatingCover } from './RotatingCover';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import {Gesture, GestureDetector, } from 'react-native-gesture-handler';
 import SongLyrics from './SongLyric';
 import { Indicator } from './Indicator';
 import { useControlStore } from '../store/controlStore';
+import { SongInfo } from './SongInfo';
+import { FpsCounter } from './FpsCount';
 const { width } = Dimensions.get('window');
-const titles = ['Trang Chủ', 'Bài Hát','Ca sĩ', 'cave'];
+const titles = ['Trang Chủ', 'Bài Hát', 'Lời Bài Hát'];
 export const SongPlayer = memo(() =>{
     // useEffect(() => {
     //     progress.value = withTiming(currentTime,{duration:500,easing: Easing.linear,}); // Cập nhật giá trị của slider khi currentTime thay đổi
@@ -31,11 +30,11 @@ export const SongPlayer = memo(() =>{
     
       // Dùng useAnimatedProps để tránh truy cập trực tiếp vào giá trị sharedValue
     const [index, setIndex] = useState(0); // 0: Component 1, 1: Component 2
-    const translateX = useSharedValue(0);
+    const translateX = useSharedValue(index * -width);
     const song = useSongStore((state) => state.song);
     const setPage = useControlStore(state=>state.setPage)
     const heights = useSharedValue<number[]>([]);
-    const outerPanRef = useRef<PanGestureHandler>(null);
+    console.log('SongPlayer render');
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ translateX: translateX.value }],
         flexDirection: 'row',
@@ -43,33 +42,30 @@ export const SongPlayer = memo(() =>{
         width: width * titles.length,
       }));
       
-      // Indicator style
-      const indicator1Style = useAnimatedStyle(() => ({
-        width: interpolate(translateX.value, [-width, 0], [20, 40]),
-        backgroundColor: '#fff',
-      }));
-    
-      const indicator2Style = useAnimatedStyle(() => ({
-        width: interpolate(translateX.value, [-width, 0], [40, 20]),
-        backgroundColor: '#fff',
-      }));
-      const gestureHandler = useAnimatedGestureHandler({
-        onActive: (event) => {
-          // Allow some movement while keeping the current position as base
-          if((event.translationX > 0 && index == 0) || (event.translationX < 0 && index == titles.length-1)){
-            return;
-          }
-          translateX.value = index * -width + event.translationX;
-        },
-        onEnd: (event) => {
-          let indexChoice = event.translationX < -50 ? index +1 : index -1;
-          indexChoice = Math.max(0, Math.min(indexChoice,titles.length - 1))
-          indexChoice = Math.max(0, Math.min(indexChoice, titles.length - 1));
-          runOnJS(setIndex)(indexChoice);
-          runOnJS(setPage)(indexChoice);
-          translateX.value = withSpring(indexChoice*-width);
-        },
-      });
+      const outerTap = Gesture.Pan()
+      .onUpdate((event) => {
+        // Prevent swiping beyond first/last item
+        if ((event.translationX > 0 && index === 0) || 
+            (event.translationX < 0 && index === titles.length - 1)) {
+          return;
+        }
+        translateX.value = index * -width + event.translationX;
+      })
+      .onEnd((event) => {
+        let indexChoice = event.translationX < -50 ? index + 1 : index - 1;
+        indexChoice = Math.max(0, Math.min(indexChoice, titles.length - 1));
+        
+        // Update state on JS thread
+        runOnJS(setIndex)(indexChoice);
+        runOnJS(setPage)(indexChoice);
+        
+        // Animate to new position
+        translateX.value = withSpring(indexChoice * -width);
+      })
+      .activeOffsetX([-10, 10]) // Vuốt ngang >10 hoặc <-10 mới hoạt động
+      .activeOffsetY([-999, 999]); // Không giới hạn trục Y (để chỉ tập trung vào trục X)
+      const nativeGesture = Gesture.Native();
+      const gesture = Gesture.Simultaneous(outerTap, nativeGesture);
       const title = titles[index];
       const updateHeight = (index: number, height: number) => {
         runOnUI(() => {
@@ -84,20 +80,21 @@ export const SongPlayer = memo(() =>{
         updateHeight(index, height);
       };
       const animatedHeight = useAnimatedStyle(() => {
-       
+
         if (heights.value.length < 2) return {};
-      
-        const inputRange = heights.value.map((_, i) => i * -width);
+        const inputRange = heights.value.map((_, i) => i * width);
         const outputRange = heights.value;
         return {
           height: interpolate(
-            translateX.value,
+            -translateX.value,
             inputRange,
             outputRange,
-            Extrapolate.CLAMP
+            Extrapolation.CLAMP
           ),
         };
       });
+      
+    
     return (
         <View style={styles.container}>
             {/* Title */}
@@ -112,11 +109,11 @@ export const SongPlayer = memo(() =>{
             </View>
             <View >
               <Animated.View style={[{ overflow: 'hidden' }, animatedHeight]}>
-            <PanGestureHandler  onGestureEvent={gestureHandler}>
+            <GestureDetector gesture={gesture}>
             <Animated.View style={[animatedStyle]}>
               {/* Component 1 */}
               <View onLayout={onLayoutPage(0)} style={styles.page}>
-                  <RotatingCover page={0}/>
+                  <RotatingCover/>
                   <View style={{alignItems:'center',gap:6}}>
                       <Text style={styles.text_title}>{song.name}</Text>
                       <Text style={styles.text_info}>{song.artist_name}</Text>
@@ -124,43 +121,32 @@ export const SongPlayer = memo(() =>{
               </View>
               {/* Component 1 */}
               <View onLayout={onLayoutPage(1)} style={styles.page}>
-                  <RotatingCover page={1} />
-                  <View style={{alignItems:'center',gap:6}}>
-                      <Text style={styles.text_title}>{song.name}</Text>
-                      <Text style={styles.text_info}>{song.artist_name}</Text>
-                  </View>
-              </View>
-              <View onLayout={onLayoutPage(2)} style={styles.page}>
-                  <RotatingCover page={2}/>
-                  <View style={{alignItems:'center',gap:6}}>
-                      <Text style={styles.text_title}>{song.name}</Text>
-                      <Text style={styles.text_info}>{song.artist_name}</Text>
-                  </View>
+                <SongInfo/>
               </View>
             {/* Component 2 */}
-            <View onLayout={onLayoutPage(3)} style={styles.page}>
+            <View onLayout={onLayoutPage(2)} style={styles.page}>
               <View style={{alignItems:'center',gap:6}}>
                   <Text style={styles.text_title}>{song.name}</Text>
                   <Text style={styles.text_info}>{song.artist_name}</Text>
               </View> 
               <SongLyrics
-              outerPanRef={outerPanRef}
+              outerTap={outerTap}
               />
             </View>
             </Animated.View>
-            </PanGestureHandler>
+            </GestureDetector>
             </Animated.View>
             </View>
             <View style={{gap:6,alignItems:'center'}}>
                 <CustomSlider/>
             </View>
             <PlayerControls/>
+           <FpsCounter/>
         </View>
     );
 })
 const styles = StyleSheet.create({
     container: {
-        paddingTop: 30,
         borderRadius: 10,
         gap:12,
     },
@@ -205,7 +191,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 16,
         fontWeight: 'bold',
-        paddingTop: 20,
+        paddingTop: 4,
         color:COLORS.primaryWhiteHex,
       },
       text: {

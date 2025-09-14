@@ -1,11 +1,12 @@
-import React, { memo, useEffect,useRef, useState,RefObject } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView,View as RNView } from 'react-native';
-
+import React, { memo, useEffect,useRef, useState,RefObject,useCallback } from 'react';
+import { View, Text, StyleSheet, Dimensions, ScrollView,View as RNView,FlatList } from 'react-native';
+import {throttle} from 'lodash';
 import { useSongStore } from '../store/songStore';
-import { PanGestureHandler, TapGestureHandler, State, } from 'react-native-gesture-handler';
+import { PanGestureHandler, TapGestureHandler, State,Gesture,GestureDetector } from 'react-native-gesture-handler';
 import type {
   PanGestureHandlerGestureEvent,
   TapGestureHandlerGestureEvent,
+  GestureType,
 } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -18,7 +19,8 @@ import Animated, {
   runOnJS,
   Easing,
   useAnimatedRef,
-  useAnimatedProps
+  useAnimatedProps,
+  runOnUI
 } from 'react-native-reanimated';
 import { COLORS } from '../types/theme';
 const { width } = Dimensions.get('window');
@@ -27,83 +29,155 @@ type PanContextType = {
   shouldHandle:boolean
 };
 type Props = {
-  outerPanRef: RefObject<PanGestureHandler>;
+  outerTap:GestureType;
 };
 const CONTAINER_HEIGHT = 400;
-const SongLyrics:React.FC<Props> = ({outerPanRef}) => {
+const SongLyrics:React.FC<Props> = ({outerTap}) => {
+ 
+  return (<View></View>)
   const currentTime = useSongStore((state) => state.currentTime);
   const song = useSongStore((state) => state.song);
+  const videoRef = useSongStore(state =>state.videoRef)
   const lyrics = song?.lyrics;
   const translateY = useSharedValue(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);   
   const containerRef = useAnimatedRef<View>();
   const [indexActive,setIndexActive] = useState(-1)
+  const flatListRef = useRef<FlatList>(null);
+  const startY = useSharedValue(0); // Replaces context
   // const isAtTop = useSharedValue(true); // true nếu đã cuộn lên đỉnh
-  // return <View></View>
   if (!lyrics || lyrics.length == 0) return <View style={{marginVertical:20}}><Text style={[{textAlign:'center'},styles.text_title]}>Chưa có lời nhạc</Text></View>;
   const lyricHeight = 40; // Ví dụ, chiều cao mỗi lyric là 50 (tùy chỉnh theo thực tế)
   const totalHeight = lyrics.length * lyricHeight;
-  const gestureHandler = useAnimatedGestureHandler<
-  PanGestureHandlerGestureEvent,
-  PanContextType>
-  ({
-  onStart: (_, ctx) => {
-    ctx.y = translateY.value;
-    // ctx.shouldHandle = !isAtTop.value;
-  },
-  onActive: (event, ctx) => {
-    translateY.value = ctx.y + event.translationY;
+  useEffect(() => {
+  if (indexActive >= 0 && flatListRef.current) {
+    flatListRef.current.scrollToIndex({
+      index: indexActive,
+      animated: true,
+      viewPosition: 0, // căn giữa màn hình
+    });
+  }
+}, [indexActive]);
+  const panGesture = Gesture.Pan()
+  .onStart(() => {
+    startY.value = translateY.value; // Store initial position
+  })
+  .onUpdate((event) => {
+    translateY.value = startY.value + event.translationY;
     translateY.value = Math.max(
         Math.min(translateY.value, 0), // Giới hạn không cho cuộn lên quá mức (head)
         -(totalHeight - 300) // Giới hạn không cho cuộn xuống quá mức (bottom)
       )
-      // if (translateY.value <= 0) {
-      //   isAtTop.value = true;
-      // } else {
-      //   isAtTop.value = false;
-      // }
-  },
-  onEnd: (_) => {
-    // Optional: clamp lại hoặc thêm inertia
-  },
-});
-useEffect(()=>{
-  
-  timeoutRef.current = setTimeout(() => {
-    const time = currentTime * 1000;
-    let indexChoice = -1;
-    for (let index = 0; index < lyrics.length; index++) {
-      const min = lyrics[index].startTimeMs;
-      const max = index < lyrics.length - 1
-        ? lyrics[index + 1].startTimeMs
-        : song.duration * 1000;
+  })
+  .onEnd((event) => {
 
-      if (time >= min && time < max) {
-        indexChoice = index;
-        break;
+  })
+  .activeOffsetY([-10, 10]) // Chỉ kích hoạt pan khi di chuyển đủ mạnh theo chiều dọc
+  // .simultaneousWithExternalGesture(outerTap); // 👈 Cho phép đồng thời
+  const nativeGesture = Gesture.Native();
+  const gesture = Gesture.Simultaneous(panGesture, nativeGesture);
+  const duration =song.duration
+  // Hàm tìm lyric hiện tại bằng binary search
+  const findCurrentLyricIndex = useCallback((timeMs:number) => {
+    let low = 0;
+    let high = lyrics.length - 1;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const min = lyrics[mid].startTimeMs;
+      const max = mid < lyrics.length - 1 
+        ? lyrics[mid + 1].startTimeMs 
+        : duration * 1000;
+
+      if (timeMs >= min && timeMs < max) {
+        return mid;
+      } else if (timeMs < min) {
+        high = mid - 1;
+      } else {
+        low = mid + 1;
       }
     }
-    console.log(indexChoice)
-    setIndexActive(indexChoice);
-    // translateY.value = Math.min(0,indexActive)
-    // const y = indexChoice <= 0 ? 0 : -indexChoice*40;
-    translateY.value = withSpring(Math.min(-indexChoice,0)*40,{
-      damping: 20,// lực giảm chấn (giảm rung)
-      stiffness: 90,       // độ cứng lò xo
-      mass: 1,             // khối lượng ảo
-      // overshootClamping: false, // true để không vượt quá target})
-    })
-    // translateY.value = -indexChoice * 40;
-  },10)
-  return () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+    return -1;
+  }, []);
+
+// Hàm cập nhật lyric
+// const updateLyric = useCallback(() => {
+//   const now = Date.now();
+//   if(now - lastUpdateRef.current > 100){
+//   const timeMs = currentTime * 1000;
+//   const currentIndex = findCurrentLyricIndex(timeMs);
+//   if (currentIndex !== lastIndexRef.current) {
+//     lastIndexRef.current = currentIndex;
+//     runOnUI(()=>{
+//       translateY.value = withSpring(Math.min(-currentIndex, 0) * 40, {
+//         damping: 20,
+//         stiffness: 90,
+//         mass: 1,
+//       });
+//       runOnJS(setIndexActive)(currentIndex);
+//     })
+//     // Cập nhật animation
+//   }
+//   lastUpdateRef.current = now;
+//   // animationRef.current = requestAnimationFrame(updateLyric);
+// }
+// }, [currentTime, findCurrentLyricIndex]);
+
+// Khởi động và dừng animation
+const updateLyric = async () => {
+  if (videoRef.current) {
+    const time = await videoRef.current.getCurrentPosition();
+    const ms = time * 1000;
+    const currentIndex = findCurrentLyricIndex(ms);
+    if (indexActive !== currentIndex) {
+      runOnUI(() => {
+        runOnJS(setIndexActive)(currentIndex);
+        translateY.value = withSpring(Math.min(-currentIndex,0)*40,{
+          damping: 20,// lực giảm chấn (giảm rung)
+          stiffness: 90,       // độ cứng lò xo
+          mass: 1,             // khối lượng ảo
+          // overshootClamping: false, // true để không vượt quá target})
+        },(finished) => {
+          if (finished) {
+            // Animation hoàn thành, có thể thực hiện các hành động khác nếu cần
+            
+          }
+      })
+      })();
+    // Tách riêng phần JS ra ngoài UI thread
     }
-  };
-},[currentTime])
+  }
+};
+// const throttledUpdate = React.useRef(
+//   throttle((time: number) => {
+//     const ms = time * 1000;
+//     const currentIndex = findCurrentLyricIndex(ms);
+//     runOnUI(() => {
+//       translateY.value = withSpring(Math.min(-currentIndex, 0) * 40, {
+//         damping: 20,
+//         stiffness: 90,
+//         mass: 1,
+//       });
+//       runOnJS(setIndexActive)(currentIndex);
+//     })();
+//   }, 100) // Cập nhật tối đa mỗi 100ms
+// ).current;
+useEffect(() => {
+  timeoutRef.current = setInterval(() => {
+    
+    updateLyric();
+  }, 600);  // Cập nhật mỗi 200ms (5 lần mỗi giây)
+  return () =>{
+    if(timeoutRef.current){
+      clearInterval(timeoutRef.current)
+    }
+  }
+},[updateLyric]);
 const animatedStyle = useAnimatedStyle(() => ({
   transform: [{ translateY: translateY.value }],
 }));
+useDerivedValue(()=>{
+  
+})
   // Initialize refs for each lyric line
   // if (itemRefs.current.length !== lyrics.length) {
   //   itemRefs.current = Array(lyrics.length)
@@ -141,26 +215,34 @@ const animatedStyle = useAnimatedStyle(() => ({
   //   }
   // }, [currentTime, lyrics]);
   return (
-    <PanGestureHandler onGestureEvent={gestureHandler}
-    activeOffsetY={[-10, 10]} // chỉ kích hoạt nếu kéo dọc đủ mạnh
-    waitFor={outerPanRef} // ưu tiên outer nếu kéo ngang
-    simultaneousHandlers={outerPanRef}
+    <GestureDetector gesture={gesture}
     >
-  <Animated.View style={[ {height: CONTAINER_HEIGHT, overflow: 'hidden' }]}>
-    <Animated.View ref={containerRef} style={animatedStyle}>
-      {lyrics.map((lyric, index) => {
-            return (
-              <LyricLine
-                  key={index}
-                  text={lyric.words}
-                  index={index}
-                  indexActive={indexActive}
-                />
-            );
-          })}
-    </Animated.View>
-  </Animated.View>
-</PanGestureHandler>
+ 
+      
+        <Animated.FlatList
+  data={lyrics}
+  ref={flatListRef}
+  renderItem={({ item, index }) => (
+    <LyricLine text={item.words} index={index} indexActive={indexActive} />
+  )}
+  keyExtractor={(_, i) => i.toString()}
+  style={styles.flatList}
+  contentContainerStyle={styles.contentContainer}
+  scrollEnabled={true}
+  windowSize={8}
+  initialNumToRender={10}
+  maxToRenderPerBatch={8}
+  updateCellsBatchingPeriod={50}
+  removeClippedSubviews={true}
+  getItemLayout={(data, index) => ({
+    length: lyricHeight, // 40 as defined earlier
+    offset: lyricHeight * index,
+    index,
+  })}
+/>
+      
+    
+  </GestureDetector>
   );
 };
 interface LyricProps{
@@ -168,33 +250,48 @@ interface LyricProps{
   index:number;
   indexActive: number;
 }
-const LyricLine:React.FC<LyricProps> = memo(({ text, index, indexActive }) => {
-  const progress = useSharedValue(0);
-  useEffect(()=>{
-      progress.value = 0;
-      progress.value = withTiming(index == indexActive ? 1 : 0, {
-        duration: 1000, // 1.5 giây
-      });
-    
-  },[indexActive])
-  // Tạo animated style
+const LyricLine: React.FC<LyricProps> = memo(({ text, index, indexActive }) => {
+  const progress = useSharedValue(index === indexActive ? 1 : 0);
+
+  'worklet';
   const animatedStyle = useAnimatedStyle(() => {
     return {
       color: interpolateColor(
         progress.value,
-        [0, 1], // Range giá trị
-        ['#ffffff', '#ffff00'] // Từ trắng (#ffffff) sang vàng (#ffff00)
+        [0, 1],
+        [COLORS.primaryWhiteHex, '#ffff00']
       ),
     };
   });
-  
-  return <Animated.Text style={[styles.lyricLine,styles.lyricText, animatedStyle]}>{text}</Animated.Text>;
+
+  // Update progress in a worklet
+  if (index === indexActive) {
+    progress.value = withTiming(1, { duration: 1000 });
+  } else {
+    progress.value = withTiming(0, { duration: 1000 });
+  }
+
+  return (
+    <Animated.Text style={[styles.lyricLine, styles.lyricText,animatedStyle]}>
+      {text}
+    </Animated.Text>
+  );
 });
 const styles = StyleSheet.create({
   container: {
      
       paddingVertical: 10
     },
+    flatList: {
+    flex: 1,
+    width: '100%',
+    
+   
+  },
+  contentContainer: {
+    paddingVertical: 20,
+    
+  },
   lyricsContainer: {
     flex: 1,
     marginTop: 20,
@@ -206,6 +303,7 @@ const styles = StyleSheet.create({
   },
   lyricText: {
     textAlign: 'center',
+     color:COLORS.primaryWhiteHex,
   },
   text_info:{
     color:COLORS.primaryWhiteHex,

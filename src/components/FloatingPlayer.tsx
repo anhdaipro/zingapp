@@ -7,8 +7,14 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Fontisto from 'react-native-vector-icons/Fontisto' 
 import { useLyrics } from "../hooks/queries/useSong"
 import { useSongActive } from "../hooks/setup/activeSong"
+import { useShallow } from "zustand/shallow"
 export const FloatingPlayer = React.memo(() =>{
-    const {song,play,setPlay,setVisible,setStyles,setViewVisible} = useSongStore();
+    const {song,play,setPlay,setVisible} = useSongStore(useShallow((state) => ({
+        song: state.song,  
+        play: state.play,
+        setPlay: state.setPlay,
+        setVisible: state.setVisible,
+        })));
     const {setLyrics} =  useSongActive(song)
     const handlePlay = () => {
         setPlay(!play)
